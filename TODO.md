@@ -9,11 +9,11 @@ Legend: `[ ]` todo · `[x]` done · `[~]` in progress · ⭐ must-have for the d
 - [x] Sandbox app credentials work (OAuth token, scopes include auth/capture, vault, disputes, payouts)
 - [x] Next.js 16 + TypeScript + Tailwind scaffold
 - [x] Smoke-test script (`scripts/sandbox-smoke.ts`)
-- [~] ⭐ AUTHORIZE order → buyer approval → authorization
-- [ ] ⭐ Two partial captures against one authorization (`final_capture: false`)
-- [ ] ⭐ Mock decline via `PayPal-Mock-Response: INSTRUMENT_DECLINED`
-- [ ] Vault go/no-go (setup token → payment token → charge with `vault_id`)
-- [ ] Create GitHub repo, MIT license, first push
+- [x] ⭐ AUTHORIZE order → buyer approval → authorization
+- [x] ⭐ Two partial captures against one authorization (`final_capture: false`)
+- [x] ⭐ Mock decline via `PayPal-Mock-Response: PAYER_CANNOT_PAY` (see docs/sandbox-findings.md)
+- [x] Vault go/no-go (setup token → payment token → charge with `vault_id`)
+- [x] Create GitHub repo, MIT license, first push
 
 ## Day 2 — Thu Nov 5 · Thin end-to-end slice (early eligibility check)
 - [ ] ⭐ PayPal client module (OAuth caching, idempotency keys, typed errors)

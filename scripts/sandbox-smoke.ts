@@ -87,7 +87,7 @@ async function main() {
     case "capture": {
       const [authorizationId, amount] = args;
       const headers: Record<string, string> = args.includes("--decline")
-        ? { "PayPal-Mock-Response": JSON.stringify({ mock_application_codes: "INSTRUMENT_DECLINED" }) }
+        ? { "PayPal-Mock-Response": JSON.stringify({ mock_application_codes: "PAYER_CANNOT_PAY" }) }
         : {};
       const { status, json } = await paypal(
         `/v2/payments/authorizations/${authorizationId}/capture`,
