@@ -6,7 +6,7 @@ const envSchema = z.object({
   PAYPAL_CLIENT_SECRET: z.string().min(1),
   PAYPAL_ENVIRONMENT: z.enum(["sandbox", "live"]).default("sandbox"),
   GOOGLE_GENERATIVE_AI_API_KEY: z.string().min(1),
-  AI_MODEL: z.string().default("gemini-2.5-flash"),
+  AI_MODEL: z.string().default("gemini-3.5-flash"),
   CHANNEL3_API_KEY: z.string().min(1),
   DATABASE_PATH: z.string().default("data/signed-intent.db"),
   /** Ed25519 private key as JWK JSON. Generated on first run in development when absent. */
