@@ -16,19 +16,19 @@ Legend: `[ ]` todo · `[x]` done · `[~]` in progress · ⭐ must-have for the d
 - [x] Create GitHub repo, MIT license, first push
 
 ## Day 2 — Thu Nov 5 · Thin end-to-end slice (early eligibility check)
-- [ ] ⭐ PayPal client module (OAuth caching, idempotency keys, typed errors)
-- [ ] ⭐ Data layer: mandates, captures, receipts, events (SQLite + Drizzle)
-- [ ] ⭐ Mandate flow: chat goal → mandate order → approve → authorization stored
-- [ ] ⭐ Agent can make one purchase (capture) inside the mandate
+- [x] ⭐ PayPal client module (OAuth caching, idempotency keys, typed errors)
+- [x] ⭐ Data layer: mandates, captures, receipts, events (SQLite + Drizzle)
+- [~] ⭐ Mandate flow: chat goal → mandate order → approve → authorization stored (needs browser test)
+- [~] ⭐ Agent can make one purchase (capture) inside the mandate (needs browser test)
 - [ ] Deploy skeleton to Render
 - [ ] Rough 60–90s video + Devpost draft submitted for early check
 
 ## Day 3 — Fri Nov 6 · Policy layer + signed receipts
-- [ ] ⭐ Policy engine: remaining budget, merchant, category, expiry, max per purchase
+- [x] ⭐ Policy engine: remaining budget, retailer allowlist, expiry, max per purchase, purchase count (unit tested)
 - [ ] ⭐ Blocked attempts logged and shown in UI
-- [ ] ⭐ Mandates and receipts signed as JWS (Ed25519), hash in order `custom_id`
-- [ ] ⭐ Receipt verification page (`/receipts/[id]`)
-- [ ] Decline recovery path in the agent loop
+- [x] ⭐ Mandates and receipts signed as JWS (Ed25519); public key at `/.well-known/jwks.json`
+- [x] ⭐ Receipt verification page (`/receipts/[id]`)
+- [x] Decline path (`PAYER_CANNOT_PAY` mock via UI toggle)
 
 ## Day 4 — Sat Nov 7 · Disputes + refunds
 - [ ] ⭐ Webhook endpoint with signature verification
