@@ -39,7 +39,7 @@ Sandbox behaviour we verified before building is documented in [`docs/sandbox-fi
 
 | Tool | How it is used |
 |---|---|
-| **Google Gemini** (`gemini-3.5-flash`) via the **Vercel AI SDK 7** | The shopping agent: understands the goal, proposes the mandate, searches, compares and decides what to buy through tool calls (`requestMandate`, `checkMandate`, `searchProducts`, `purchase`). The model never decides whether money moves; the policy layer does. |
+| **Google Gemini** (`gemini-3.5-flash`, falling back to flash-lite models on rate limits) via the **Vercel AI SDK 7** | The shopping agent: understands the goal, proposes the mandate, searches, compares and decides what to buy through tool calls (`requestMandate`, `checkMandate`, `searchProducts`, `purchase`). The model never decides whether money moves; the policy layer does. |
 | **Channel3** | Real product search and authoritative price lookup across 25k+ retailers. |
 | **PayPal REST APIs** (sandbox) | Authorizations, partial captures, voids, refunds, negative testing. |
 | **jose** | Ed25519 (EdDSA) signing and verification of mandates and receipts. |
@@ -99,6 +99,7 @@ To approve a mandate you need a sandbox **Personal** account: developer.paypal.c
 |---|---|
 | `npm run dev` | Start the development server |
 | `npm test` | Unit tests (policy engine) |
+| `npm run test:e2e` | Full browser flow against a running app (needs `SANDBOX_BUYER_EMAIL` / `SANDBOX_BUYER_PASSWORD`) |
 | `npm run typecheck` | TypeScript checks |
 | `npm run lint` | ESLint |
 | `node --env-file=.env.local scripts/sandbox-smoke.ts` | Exercise PayPal sandbox primitives directly |
@@ -117,6 +118,7 @@ src/
     paypal/              REST client and payment helpers
     signing.ts           Ed25519 JWS signing and verification
 drizzle/                 SQL migrations
+e2e/                     Playwright end-to-end test
 docs/                    sandbox findings
 scripts/                 sandbox smoke test
 ```

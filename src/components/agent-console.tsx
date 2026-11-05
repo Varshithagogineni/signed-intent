@@ -131,7 +131,7 @@ export function AgentConsole() {
             {status === "submitted" && <div className="text-sm text-muted">Thinking…</div>}
             {error && (
               <div className="rounded-lg border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger">
-                Something went wrong. Please try again.
+                {error.message || "Something went wrong. Please try again."}
               </div>
             )}
             <div ref={bottomRef} />

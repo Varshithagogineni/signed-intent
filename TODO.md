@@ -18,14 +18,17 @@ Legend: `[ ]` todo · `[x]` done · `[~]` in progress · ⭐ must-have for the d
 ## Day 2 — Thu Nov 5 · Thin end-to-end slice (early eligibility check)
 - [x] ⭐ PayPal client module (OAuth caching, idempotency keys, typed errors)
 - [x] ⭐ Data layer: mandates, captures, receipts, events (SQLite + Drizzle)
-- [~] ⭐ Mandate flow: chat goal → mandate order → approve → authorization stored (needs browser test)
-- [~] ⭐ Agent can make one purchase (capture) inside the mandate (needs browser test)
-- [ ] Deploy skeleton to Render
+- [x] ⭐ Mandate flow: chat goal → mandate order → approve (popup) → authorization stored
+- [x] ⭐ Agent can make one purchase (capture) inside the mandate
+- [x] End-to-end browser test (Playwright): approve → buy → overspend blocked → receipt verifies
+- [x] Model fallback chain + readable rate-limit errors (Gemini free tier is 5 req/min)
+- [ ] Make GitHub repo public (needs owner)
+- [ ] Deploy to Render (render.yaml blueprint + persistent disk)
 - [ ] Rough 60–90s video + Devpost draft submitted for early check
 
 ## Day 3 — Fri Nov 6 · Policy layer + signed receipts
 - [x] ⭐ Policy engine: remaining budget, retailer allowlist, expiry, max per purchase, purchase count (unit tested)
-- [ ] ⭐ Blocked attempts logged and shown in UI
+- [x] ⭐ Blocked attempts logged and shown in UI
 - [x] ⭐ Mandates and receipts signed as JWS (Ed25519); public key at `/.well-known/jwks.json`
 - [x] ⭐ Receipt verification page (`/receipts/[id]`)
 - [x] Decline path (`PAYER_CANNOT_PAY` mock via UI toggle)
