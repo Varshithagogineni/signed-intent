@@ -1,6 +1,6 @@
 # Sandbox findings (Nov 4, 2026)
 
-Verified against `api-m.sandbox.paypal.com` with `scripts/sandbox-smoke.ts`.
+Verified against `api-m.sandbox.paypal.com` with `scripts/sandbox-smoke.mts`.
 
 | Primitive | Result | Notes |
 |---|---|---|

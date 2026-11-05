@@ -1,0 +1,34 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+# Deploy with Render Dashboard → New → Blueprint → select this repository.
+services:
+  - type: web
+    name: signed-intent
+    runtime: node
+    plan: starter # a persistent disk requires a paid instance
+    region: oregon
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    disk:
+      name: data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: DATABASE_PATH
+        value: /var/data/signed-intent.db
+      - key: PAYPAL_ENVIRONMENT
+        value: sandbox
+      - key: APP_URL
+        sync: false # e.g. https://signed-intent.onrender.com
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_GENERATIVE_AI_API_KEY
+        sync: false
+      - key: CHANNEL3_API_KEY
+        sync: false
+      - key: SIGNING_PRIVATE_JWK
+        sync: false # generate with: node scripts/generate-signing-key.mts

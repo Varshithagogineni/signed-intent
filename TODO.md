@@ -8,7 +8,7 @@ Legend: `[ ]` todo · `[x]` done · `[~]` in progress · ⭐ must-have for the d
 ## Day 1 — Wed Nov 4 · Validate the payment primitives
 - [x] Sandbox app credentials work (OAuth token, scopes include auth/capture, vault, disputes, payouts)
 - [x] Next.js 16 + TypeScript + Tailwind scaffold
-- [x] Smoke-test script (`scripts/sandbox-smoke.ts`)
+- [x] Smoke-test script (`scripts/sandbox-smoke.mts`)
 - [x] ⭐ AUTHORIZE order → buyer approval → authorization
 - [x] ⭐ Two partial captures against one authorization (`final_capture: false`)
 - [x] ⭐ Mock decline via `PayPal-Mock-Response: PAYER_CANNOT_PAY` (see docs/sandbox-findings.md)
@@ -23,7 +23,9 @@ Legend: `[ ]` todo · `[x]` done · `[~]` in progress · ⭐ must-have for the d
 - [x] End-to-end browser test (Playwright): approve → buy → overspend blocked → receipt verifies
 - [x] Model fallback chain + readable rate-limit errors (Gemini free tier is 5 req/min)
 - [ ] Make GitHub repo public (needs owner)
-- [ ] Deploy to Render (render.yaml blueprint + persistent disk)
+- [x] Production build passes; lazy DB connection; `/api/health`
+- [x] `render.yaml` blueprint + signing key script
+- [ ] Deploy to Render (needs owner's Render account)
 - [ ] Rough 60–90s video + Devpost draft submitted for early check
 
 ## Day 3 — Fri Nov 6 · Policy layer + signed receipts

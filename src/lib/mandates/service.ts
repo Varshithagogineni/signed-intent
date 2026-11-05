@@ -1,7 +1,7 @@
 import "server-only";
 import { count, desc, eq, sql } from "drizzle-orm";
 import { getProduct, type Product } from "@/lib/catalog/channel3";
-import { db, schema } from "@/lib/db";
+import { getDb, schema } from "@/lib/db";
 import type { ActivityKind, Mandate, Purchase } from "@/lib/db/schema";
 import { env } from "@/lib/env";
 import { newId } from "@/lib/ids";
@@ -17,7 +17,7 @@ const { mandates, purchases, activity } = schema;
 const DECLINE_ISSUES = new Set(["PAYER_CANNOT_PAY", "INSTRUMENT_DECLINED", "PAYEE_ACCOUNT_RESTRICTED", "AUTHORIZATION_VOIDED"]);
 
 function log(mandateId: string, kind: ActivityKind, message: string, amountCents?: Cents) {
-  db.insert(activity)
+  getDb().insert(activity)
     .values({ id: newId("act"), mandateId, kind, message, amountCents, createdAt: new Date() })
     .run();
 }
@@ -35,7 +35,7 @@ export interface MandateTerms {
 export async function createMandate(terms: MandateTerms): Promise<Mandate> {
   const id = newId("mdt");
   const now = new Date();
-  db.insert(mandates)
+  getDb().insert(mandates)
     .values({
       id,
       goal: terms.goal,
@@ -57,13 +57,13 @@ export async function createMandate(terms: MandateTerms): Promise<Mandate> {
     cancelUrl: `${APP_URL}/?mandate=${id}&cancelled=1`,
   });
 
-  db.update(mandates).set({ paypalOrderId: order.orderId, approveUrl: order.approveUrl }).where(eq(mandates.id, id)).run();
+  getDb().update(mandates).set({ paypalOrderId: order.orderId, approveUrl: order.approveUrl }).where(eq(mandates.id, id)).run();
   log(id, "mandate_created", `Mandate proposed: up to ${formatUsd(terms.capCents)} for "${terms.goal}".`, terms.capCents);
   return getMandate(id)!;
 }
 
 export function getMandate(id: string): Mandate | undefined {
-  return db.select().from(mandates).where(eq(mandates.id, id)).get();
+  return getDb().select().from(mandates).where(eq(mandates.id, id)).get();
 }
 
 /**
@@ -91,7 +91,7 @@ export async function activateMandate(id: string): Promise<Mandate> {
     approved_at: activatedAt.toISOString(),
   });
 
-  db.update(mandates)
+  getDb().update(mandates)
     .set({
       status: "active",
       authorizationId: auth.authorizationId,
@@ -127,7 +127,7 @@ export async function purchase(input: {
   }
 
   // Check policy and reserve the amount atomically so concurrent purchases cannot overspend.
-  const reservation = db.transaction((tx) => {
+  const reservation = getDb().transaction((tx) => {
     const mandate = tx.select().from(mandates).where(eq(mandates.id, input.mandateId)).get();
     if (!mandate) return { ok: false as const, violation: "MANDATE_NOT_ACTIVE" as const, reason: "Unknown mandate." };
     const [{ value: purchaseCount }] = tx
@@ -158,7 +158,7 @@ export async function purchase(input: {
   const { mandate } = reservation;
   const purchaseId = newId("pur");
   const releaseReservation = () =>
-    db.update(mandates)
+    getDb().update(mandates)
       .set({ spentCents: sql`${mandates.spentCents} - ${product.priceCents}` })
       .where(eq(mandates.id, mandate.id))
       .run();
@@ -199,7 +199,7 @@ export async function purchase(input: {
     purchased_at: createdAt.toISOString(),
   });
 
-  db.insert(purchases)
+  getDb().insert(purchases)
     .values({
       id: purchaseId,
       mandateId: mandate.id,
@@ -217,7 +217,7 @@ export async function purchase(input: {
     .run();
   log(mandate.id, "purchase_completed", `Bought "${product.title}" from ${product.retailer} for ${formatUsd(product.priceCents)}.`, product.priceCents);
 
-  return { status: "completed", purchase: db.select().from(purchases).where(eq(purchases.id, purchaseId)).get()!, remainingCents: reservation.remainingCents };
+  return { status: "completed", purchase: getDb().select().from(purchases).where(eq(purchases.id, purchaseId)).get()!, remainingCents: reservation.remainingCents };
 }
 
 /** Ends the mandate and releases any unspent part of the hold back to the buyer. */
@@ -229,7 +229,7 @@ export async function closeMandate(id: string, reason: "closed" | "revoked"): Pr
   if (mandate.authorizationId && mandate.spentCents < mandate.capCents) {
     await voidAuthorization(mandate.authorizationId);
   }
-  db.update(mandates).set({ status: reason }).where(eq(mandates.id, id)).run();
+  getDb().update(mandates).set({ status: reason }).where(eq(mandates.id, id)).run();
   const released = formatUsd(mandate.capCents - mandate.spentCents);
   log(id, reason === "revoked" ? "mandate_revoked" : "mandate_closed", `Mandate ${reason}. ${released} released back to the buyer.`);
   return getMandate(id)!;
@@ -246,7 +246,7 @@ export function getMandateDetail(id: string): MandateDetail | undefined {
   if (!mandate) return undefined;
   return {
     mandate,
-    purchases: db.select().from(purchases).where(eq(purchases.mandateId, id)).orderBy(desc(purchases.createdAt)).all(),
-    activity: db.select().from(activity).where(eq(activity.mandateId, id)).orderBy(desc(activity.createdAt)).all(),
+    purchases: getDb().select().from(purchases).where(eq(purchases.mandateId, id)).orderBy(desc(purchases.createdAt)).all(),
+    activity: getDb().select().from(activity).where(eq(activity.mandateId, id)).orderBy(desc(activity.createdAt)).all(),
   };
 }

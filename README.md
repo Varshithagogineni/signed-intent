@@ -93,6 +93,16 @@ To approve a mandate you need a sandbox **Personal** account: developer.paypal.c
 5. Tick *"make PayPal decline the next payment"* to see decline handling.
 6. Open **View signed receipt** to verify the signature.
 
+## Deploy to Render
+
+The repo includes a [Render Blueprint](render.yaml): a Node web service with a 1 GB persistent disk for the SQLite database.
+
+1. Render Dashboard → **New → Blueprint** → select this repository.
+2. Fill in the secret environment variables Render prompts for. Generate the signing key with `node scripts/generate-signing-key.mts`.
+3. After the first deploy, set `APP_URL` to the service URL (PayPal redirects back to it after approval) and redeploy.
+
+`/api/health` is the health check.
+
 ## Scripts
 
 | Command | Purpose |
@@ -102,7 +112,8 @@ To approve a mandate you need a sandbox **Personal** account: developer.paypal.c
 | `npm run test:e2e` | Full browser flow against a running app (needs `SANDBOX_BUYER_EMAIL` / `SANDBOX_BUYER_PASSWORD`) |
 | `npm run typecheck` | TypeScript checks |
 | `npm run lint` | ESLint |
-| `node --env-file=.env.local scripts/sandbox-smoke.ts` | Exercise PayPal sandbox primitives directly |
+| `node --env-file=.env.local scripts/sandbox-smoke.mts` | Exercise PayPal sandbox primitives directly |
+| `node scripts/generate-signing-key.mts` | Create a production signing key |
 
 ## Project structure
 

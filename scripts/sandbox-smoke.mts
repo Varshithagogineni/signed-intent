@@ -2,10 +2,10 @@
  * Sandbox smoke test for the payment primitives Signed Intent depends on.
  *
  * Usage (Node 24+, runs TypeScript natively):
- *   node --env-file=.env.local scripts/sandbox-smoke.ts create [amount]
- *   node --env-file=.env.local scripts/sandbox-smoke.ts authorize <orderId>
- *   node --env-file=.env.local scripts/sandbox-smoke.ts capture <authorizationId> <amount> [--final] [--decline]
- *   node --env-file=.env.local scripts/sandbox-smoke.ts vault
+ *   node --env-file=.env.local scripts/sandbox-smoke.mts create [amount]
+ *   node --env-file=.env.local scripts/sandbox-smoke.mts authorize <orderId>
+ *   node --env-file=.env.local scripts/sandbox-smoke.mts capture <authorizationId> <amount> [--final] [--decline]
+ *   node --env-file=.env.local scripts/sandbox-smoke.mts vault
  */
 
 const API_BASE = "https://api-m.sandbox.paypal.com";

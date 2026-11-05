@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { formatCents } from "@/components/format";
-import { db, schema } from "@/lib/db";
+import { getDb, schema } from "@/lib/db";
 import { verifyDocument } from "@/lib/signing";
 
 interface ReceiptClaims {
@@ -18,9 +18,10 @@ interface ReceiptClaims {
   purchased_at: string;
 }
 
-async function Receipt({ id }: { id: string }) {
+async function Receipt({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   await connection();
-  const purchase = db.select().from(schema.purchases).where(eq(schema.purchases.id, id)).get();
+  const purchase = getDb().select().from(schema.purchases).where(eq(schema.purchases.id, id)).get();
   if (!purchase) notFound();
 
   let claims: ReceiptClaims | null = null;
@@ -84,8 +85,7 @@ async function Receipt({ id }: { id: string }) {
   );
 }
 
-export default async function ReceiptPage({ params }: PageProps<"/receipts/[id]">) {
-  const { id } = await params;
+export default function ReceiptPage({ params }: PageProps<"/receipts/[id]">) {
   return (
     <main className="mx-auto max-w-2xl px-4 py-10">
       <Link href="/" className="text-sm text-muted hover:text-foreground">
@@ -93,7 +93,7 @@ export default async function ReceiptPage({ params }: PageProps<"/receipts/[id]"
       </Link>
       <div className="mt-4">
         <Suspense fallback={<div className="text-sm text-muted">Verifying receipt…</div>}>
-          <Receipt id={id} />
+          <Receipt params={params} />
         </Suspense>
       </div>
     </main>
