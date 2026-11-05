@@ -65,3 +65,6 @@ Legend: `[ ]` todo · `[x]` done · `[~]` in progress · ⭐ must-have for the d
 
 ## Day 9 — Thu Nov 12 · Buffer only
 - [ ] Confirm submission before 12:00 PM PT
+
+## After judging — Tue Dec 22, 2026
+- [ ] Render: suspend/delete the `signed-intent` service and its disk, then remove the card from Billing (do not change the repo or video before winners are announced Dec 21)
