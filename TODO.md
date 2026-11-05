@@ -26,7 +26,9 @@ Legend: `[ ]` todo · `[x]` done · `[~]` in progress · ⭐ must-have for the d
 - [x] Production build passes; lazy DB connection; `/api/health`
 - [x] `render.yaml` blueprint + signing key script
 - [ ] Deploy to Render (needs owner's Render account)
-- [ ] Rough 60–90s video + Devpost draft submitted for early check
+- [x] Devpost text + video script (`docs/submission.md`)
+- [ ] Rough 60–90s video recorded and uploaded (owner)
+- [ ] Devpost draft submitted for early check (owner)
 
 ## Day 3 — Fri Nov 6 · Policy layer + signed receipts
 - [x] ⭐ Policy engine: remaining budget, retailer allowlist, expiry, max per purchase, purchase count (unit tested)
