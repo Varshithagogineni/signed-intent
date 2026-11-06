@@ -33,10 +33,17 @@ export interface EvidenceInput {
   mandate: {
     goal: string;
     capCents: Cents;
+    maxPerPurchaseCents: Cents | null;
+    allowedRetailers: string[] | null;
     expiresAt: Date;
     activatedAt: Date | null;
     authorizationId: string | null;
   } | null;
+  /**
+   * Every capture made under the mandate, oldest first. Partial captures of one hold can
+   * look like duplicate charges to a buyer, so the evidence lists all of them.
+   */
+  mandateCaptures: { title: string; amountCents: Cents; captureId: string }[];
   /** Receipt JWS verified against our public key. */
   receiptValid: boolean;
   /** Mandate JWS verified against our public key. */
@@ -44,6 +51,8 @@ export interface EvidenceInput {
   /** The receipt's mandate fingerprint equals the hash of the mandate token on file. */
   receiptBoundToMandate: boolean;
 }
+
+const domain = (value: string) => value.trim().toLowerCase().replace(/^www\./, "");
 
 export interface EvidenceCheck {
   key: "matched" | "receipt" | "mandate" | "binding" | "approved" | "within_cap" | "amount";
@@ -73,6 +82,15 @@ export function checkEvidence(input: EvidenceInput): EvidenceCheck[] {
 
   const approvedBeforePurchase = mandate.activatedAt !== null && mandate.activatedAt <= purchase.createdAt;
   const insideWindow = purchase.createdAt < mandate.expiresAt;
+  const totalCents = input.mandateCaptures.reduce((sum, c) => sum + c.amountCents, 0);
+  const termViolations = [
+    mandate.maxPerPurchaseCents !== null && purchase.amountCents > mandate.maxPerPurchaseCents
+      ? `over the ${formatUsd(mandate.maxPerPurchaseCents)} per-purchase limit`
+      : null,
+    mandate.allowedRetailers?.length && !mandate.allowedRetailers.map(domain).includes(domain(purchase.retailer))
+      ? `${purchase.retailer} is not an approved retailer`
+      : null,
+  ].filter((v): v is string => v !== null);
 
   return [
     {
@@ -107,16 +125,20 @@ export function checkEvidence(input: EvidenceInput): EvidenceCheck[] {
       key: "approved",
       label: "Buyer approved in PayPal first",
       ok: approvedBeforePurchase && insideWindow,
-      detail:
-        approvedBeforePurchase && insideWindow
-          ? `Buyer approved PayPal authorization ${mandate.authorizationId} before the agent spent anything, and the purchase was inside the mandate window.`
-          : "The purchase falls outside the approved mandate window.",
+      detail: !approvedBeforePurchase
+        ? "The purchase is not after a PayPal approval on record."
+        : !insideWindow
+          ? `The purchase came after the mandate expired on ${mandate.expiresAt.toISOString()}.`
+          : `Buyer approved PayPal authorization ${mandate.authorizationId} before the agent spent anything, and the purchase was inside the mandate window.`,
     },
     {
       key: "within_cap",
-      label: "Within the approved limit",
-      ok: purchase.amountCents <= mandate.capCents,
-      detail: `${formatUsd(purchase.amountCents)} spent against a ${formatUsd(mandate.capCents)} mandate.`,
+      label: "Within the mandate's terms",
+      ok: totalCents <= mandate.capCents && termViolations.length === 0,
+      detail:
+        termViolations.length > 0
+          ? `This purchase was ${termViolations.join(" and ")}.`
+          : `${input.mandateCaptures.length} charge(s) under this mandate total ${formatUsd(totalCents)} of the ${formatUsd(mandate.capCents)} limit.`,
     },
     {
       key: "amount",
@@ -137,17 +159,20 @@ export function authorizationProven(checks: EvidenceCheck[]): boolean {
   return checks.some((c) => c.key === "matched" && c.ok) && INTEGRITY_CHECKS.every((key) => checks.find((c) => c.key === key)?.ok);
 }
 
-/** The evidence statement submitted to PayPal, built only from verified facts. */
+/**
+ * The evidence statement submitted to PayPal, built only from verified facts. It leads with
+ * PayPal's own records (which PayPal can check itself); our signatures then show scope.
+ */
 export function evidenceNotes(input: EvidenceInput, appUrl: string): string {
   const { purchase, mandate } = input;
   if (!purchase || !mandate) return "";
+  const charges = input.mandateCaptures.map((c) => `${c.captureId} ${formatUsd(c.amountCents)} "${c.title}"`).join("; ");
   return [
-    `This purchase was made by an AI shopping agent under a spending mandate the buyer approved in PayPal.`,
-    `Buyer's instruction: "${mandate.goal}" with a limit of ${formatUsd(mandate.capCents)}.`,
-    `The buyer approved PayPal authorization ${mandate.authorizationId} on ${mandate.activatedAt?.toISOString()}, before any money moved.`,
-    `The agent bought "${purchase.title}" from ${purchase.retailer} for ${formatUsd(purchase.amountCents)} (capture ${purchase.captureId}) on ${purchase.createdAt.toISOString()}.`,
+    `The buyer approved PayPal authorization ${mandate.authorizationId} for ${formatUsd(mandate.capCents)} on ${mandate.activatedAt?.toISOString()}, logged in to their own PayPal account, before any money moved.`,
+    `The approval was for an AI shopping agent to buy: "${mandate.goal}". This payment, capture ${purchase.captureId} for ${formatUsd(purchase.amountCents)}, is a partial capture of that authorization: "${purchase.title}" from ${purchase.retailer} on ${purchase.createdAt.toISOString()}.`,
+    `All captures of this authorization (${input.mandateCaptures.length}): ${charges}. They are separate items, not duplicate charges, and together stay within the approved amount.`,
     `Agent's recorded reasoning: "${purchase.reasoning}"`,
-    `Both the mandate and this purchase receipt are signed with Ed25519. Signed receipt: ${appUrl}/receipts/${purchase.id}. Public key: ${appUrl}/.well-known/jwks.json.`,
+    `The mandate terms and this purchase receipt are signed (Ed25519) and can be verified: ${appUrl}/receipts/${purchase.id} with the public key at ${appUrl}/.well-known/jwks.json.`,
   ].join("\n");
 }
 
@@ -187,6 +212,14 @@ export function baselineAnalysis(input: EvidenceInput, checks: EvidenceCheck[], 
         summary: `${describeReason(input.dispute.reason)}, but the signed mandate proves they approved this spend in PayPal.`,
         rationale: `Every check passes: the buyer approved the hold first, the agent stayed inside the limit, and one capture of the exact amount was made. That directly answers a claim that ${reason}.`,
         draft: evidenceNotes(input, appUrl),
+      };
+    case "MERCHANDISE_OR_SERVICE_NOT_RECEIVED":
+      return {
+        recommendation: "send_message",
+        confidence: "medium",
+        summary: "The purchase was authorized, but the buyer says it never arrived.",
+        rationale: "Signed Intent proves authorization and scope, not delivery. Check the order with the retailer and update the buyer; refund if it can't be found.",
+        draft: `Hi, our records show "${input.purchase.title}" was ordered from ${input.purchase.retailer} under the mandate you approved. We're checking delivery with the retailer and will update you shortly.`,
       };
     case "MERCHANDISE_OR_SERVICE_NOT_AS_DESCRIBED":
       return {

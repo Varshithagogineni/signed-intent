@@ -30,5 +30,7 @@ services:
         sync: false
       - key: CHANNEL3_API_KEY
         sync: false
+      - key: PAYPAL_WEBHOOK_ID
+        sync: false # optional: from scripts/register-webhook.mts; without it use "Check PayPal for disputes"
       - key: SIGNING_PRIVATE_JWK
         sync: false # generate with: node scripts/generate-signing-key.mts

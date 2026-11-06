@@ -18,6 +18,17 @@ interface ApprovalMessage {
   ok: boolean;
 }
 
+/** Server errors arrive as JSON bodies such as `{"error":"…"}`; show just the sentence. */
+function readableError(error: Error): string {
+  try {
+    const parsed = JSON.parse(error.message);
+    if (typeof parsed?.error === "string") return parsed.error;
+  } catch {
+    // Not JSON: the message is already readable.
+  }
+  return error.message || "Something went wrong. Please try again.";
+}
+
 /** The most recent mandate the agent created in this conversation. */
 function latestMandateId(messages: AgentUIMessage[]): string | null {
   for (const message of [...messages].reverse()) {
@@ -131,12 +142,21 @@ export function AgentConsole() {
             {status === "submitted" && <div className="text-sm text-muted">Thinking…</div>}
             {error && (
               <div className="rounded-lg border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger">
-                {error.message || "Something went wrong. Please try again."}
+                {readableError(error)}
               </div>
             )}
             <div ref={bottomRef} />
           </div>
         </div>
+
+        {mandateId && (
+          <details className="border-t border-border bg-surface-muted lg:hidden">
+            <summary className="cursor-pointer px-4 py-2.5 text-sm font-medium">Mandate, purchases and activity</summary>
+            <div className="max-h-[50dvh] overflow-y-auto border-t border-border">
+              <MandatePanel mandateId={mandateId} />
+            </div>
+          </details>
+        )}
 
         <form onSubmit={onSubmit} className="border-t border-border bg-background px-4 py-4 sm:px-8">
           <div className="mx-auto flex max-w-2xl flex-col gap-2">

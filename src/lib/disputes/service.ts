@@ -1,5 +1,5 @@
 import "server-only";
-import { desc, eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
 import type { Dispute, DisputeAnalysis, Mandate, Purchase } from "@/lib/db/schema";
 import { newId } from "@/lib/ids";
@@ -24,19 +24,22 @@ function log(mandateId: string, kind: "dispute_opened" | "dispute_responded" | "
   getDb().insert(activity).values({ id: newId("act"), mandateId, kind, message, amountCents, createdAt: new Date() }).run();
 }
 
-function findPurchase(captureId: string | null): Purchase | undefined {
-  if (!captureId) return undefined;
-  return getDb().select().from(purchases).where(eq(purchases.captureId, captureId)).get();
+/** Matches on the capture ID, falling back to the invoice ID we set (our purchase ID). */
+function findPurchase(remote: PayPalDispute): Purchase | undefined {
+  const db = getDb();
+  const byCapture = remote.captureId ? db.select().from(purchases).where(eq(purchases.captureId, remote.captureId)).get() : undefined;
+  if (byCapture || !remote.invoiceId) return byCapture;
+  return db.select().from(purchases).where(eq(purchases.id, remote.invoiceId)).get();
 }
 
 /** Mirrors one PayPal dispute locally and links it to the purchase it is about. */
 function upsert(remote: PayPalDispute): Dispute {
   const db = getDb();
   const existing = db.select().from(disputes).where(eq(disputes.id, remote.id)).get();
-  const purchase = findPurchase(remote.captureId);
+  const purchase = findPurchase(remote);
   const values = {
     purchaseId: purchase?.id ?? null,
-    captureId: remote.captureId,
+    captureId: remote.captureId ?? purchase?.captureId ?? null,
     reason: remote.reason,
     status: remote.status,
     stage: remote.stage,
@@ -48,7 +51,12 @@ function upsert(remote: PayPalDispute): Dispute {
   };
 
   if (existing) {
-    db.update(disputes).set(values).where(eq(disputes.id, remote.id)).run();
+    // A new stage unlocks different PayPal actions, so the old advice no longer applies.
+    const changed = existing.stage !== remote.stage || existing.actions.join() !== remote.actions.join();
+    db.update(disputes)
+      .set({ ...values, ...(changed && { analysis: null }) })
+      .where(eq(disputes.id, remote.id))
+      .run();
   } else {
     db.insert(disputes).values({ id: remote.id, openedAt: remote.createdAt, ...values }).run();
     if (purchase) {
@@ -121,10 +129,20 @@ export async function getDisputeCase(id: string): Promise<DisputeCase | undefine
     }
   }
 
+  const mandateCaptures = mandate
+    ? db
+        .select({ title: purchases.title, amountCents: purchases.amountCents, captureId: purchases.captureId })
+        .from(purchases)
+        .where(eq(purchases.mandateId, mandate.id))
+        .orderBy(asc(purchases.createdAt))
+        .all()
+    : [];
+
   const evidence: EvidenceInput = {
     dispute: { reason: dispute.reason, amountCents: dispute.amountCents, captureId: dispute.captureId },
     purchase,
     mandate,
+    mandateCaptures,
     receiptValid: await verifies("intent-receipt", purchase?.signedReceipt ?? null),
     mandateValid: await verifies("mandate", mandate?.signedMandate ?? null),
     receiptBoundToMandate: boundToMandate,

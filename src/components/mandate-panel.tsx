@@ -27,6 +27,8 @@ const ACTIVITY_DOT: Record<string, string> = {
   purchase_blocked: "bg-danger",
   payment_declined: "bg-warning",
   mandate_revoked: "bg-danger",
+  dispute_opened: "bg-warning",
+  purchase_refunded: "bg-muted",
 };
 
 function useMandate(mandateId: string | null) {
@@ -136,7 +138,10 @@ export function MandatePanel({ mandateId }: { mandateId: string | null }) {
                   )}
                   <div className="min-w-0 flex-1 text-xs">
                     <div className="truncate font-medium">{p.title}</div>
-                    <div className="text-muted">{p.retailer}</div>
+                    <div className="text-muted">
+                      {p.retailer}
+                      {p.status === "refunded" && " · refunded"}
+                    </div>
                   </div>
                   <div className="text-sm font-semibold tabular-nums">{formatCents(p.amountCents)}</div>
                 </a>

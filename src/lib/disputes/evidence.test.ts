@@ -17,10 +17,13 @@ const valid: EvidenceInput = {
   mandate: {
     goal: "water filter pitcher, up to $40",
     capCents: 4000,
+    maxPerPurchaseCents: null,
+    allowedRetailers: null,
     expiresAt: new Date("2026-11-13T12:00:00Z"),
     activatedAt: new Date("2026-11-06T12:00:00Z"),
     authorizationId: "AUTH9",
   },
+  mandateCaptures: [{ title: "Brita Pitcher", amountCents: 1999, captureId: "CAP123" }],
   receiptValid: true,
   mandateValid: true,
   receiptBoundToMandate: true,
@@ -52,6 +55,19 @@ describe("checkEvidence", () => {
     expect(failing(input)).toEqual(["approved"]);
   });
 
+  it("checks the total of every capture, not just the disputed one", () => {
+    const input = {
+      ...valid,
+      mandateCaptures: [...valid.mandateCaptures, { title: "Filters", amountCents: 2500, captureId: "CAP456" }],
+    };
+    expect(failing(input)).toEqual(["within_cap"]);
+  });
+
+  it("enforces the per-purchase limit and retailer allowlist", () => {
+    expect(failing({ ...valid, mandate: { ...valid.mandate!, maxPerPurchaseCents: 1000 } })).toEqual(["within_cap"]);
+    expect(failing({ ...valid, mandate: { ...valid.mandate!, allowedRetailers: ["bestbuy.com"] } })).toEqual(["within_cap"]);
+  });
+
   it("flags a disputed amount that differs from the receipt without failing authorization", () => {
     const input = { ...valid, dispute: { ...valid.dispute, amountCents: 2500 } };
     expect(failing(input)).toEqual(["amount"]);
@@ -67,6 +83,7 @@ describe("baselineAnalysis", () => {
     expect(analysis.recommendation).toBe("provide_evidence");
     expect(analysis.draft).toContain(`${APP_URL}/receipts/pur_abc`);
     expect(analysis.draft).toContain("AUTH9");
+    expect(analysis.draft).toContain("All captures of this authorization (1)");
   });
 
   it("refunds when our own evidence fails a check", () => {

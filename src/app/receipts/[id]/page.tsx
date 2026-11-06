@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { formatCents } from "@/components/format";
+import { SiteHeader } from "@/components/site-header";
 import { getDb, schema } from "@/lib/db";
 import { verifyDocument } from "@/lib/signing";
 
@@ -23,6 +24,7 @@ async function Receipt({ params }: { params: Promise<{ id: string }> }) {
   await connection();
   const purchase = getDb().select().from(schema.purchases).where(eq(schema.purchases.id, id)).get();
   if (!purchase) notFound();
+  const dispute = getDb().select().from(schema.disputes).where(eq(schema.disputes.purchaseId, id)).get();
 
   let claims: ReceiptClaims | null = null;
   try {
@@ -59,9 +61,22 @@ async function Receipt({ params }: { params: Promise<{ id: string }> }) {
         )}
       </div>
 
+      {(purchase.status === "refunded" || dispute) && (
+        <div className="mt-4 flex flex-wrap gap-2 text-xs">
+          {purchase.status === "refunded" && (
+            <span className="rounded-full bg-muted/10 px-2.5 py-1 font-medium text-muted">Refunded to the buyer</span>
+          )}
+          {dispute && (
+            <Link href={`/disputes/${dispute.id}`} className="rounded-full bg-warning/10 px-2.5 py-1 font-medium text-warning hover:underline">
+              Disputed · {dispute.id} →
+            </Link>
+          )}
+        </div>
+      )}
+
       <dl className="mt-6 divide-y divide-border text-sm">
         {rows.map(([label, value]) => (
-          <div key={label} className="grid grid-cols-[160px_1fr] gap-4 py-2.5">
+          <div key={label} className="grid gap-1 py-2.5 sm:grid-cols-[160px_1fr] sm:gap-4">
             <dt className="text-muted">{label}</dt>
             <dd className="break-words">{value}</dd>
           </div>
@@ -87,14 +102,17 @@ async function Receipt({ params }: { params: Promise<{ id: string }> }) {
 
 export default function ReceiptPage({ params }: PageProps<"/receipts/[id]">) {
   return (
-    <main className="mx-auto max-w-2xl px-4 py-10">
-      <Link href="/" className="text-sm text-muted hover:text-foreground">
-        ← Back to agent
-      </Link>
-      <div className="mt-4">
-        <Suspense fallback={<div className="text-sm text-muted">Verifying receipt…</div>}>
-          <Receipt params={params} />
-        </Suspense>
+    <main className="flex min-h-dvh flex-col">
+      <SiteHeader active="agent" />
+      <div className="mx-auto w-full max-w-2xl px-4 py-8">
+        <Link href="/" className="text-sm text-muted hover:text-foreground">
+          ← Back to agent
+        </Link>
+        <div className="mt-4">
+          <Suspense fallback={<div className="text-sm text-muted">Verifying receipt…</div>}>
+            <Receipt params={params} />
+          </Suspense>
+        </div>
       </div>
     </main>
   );
