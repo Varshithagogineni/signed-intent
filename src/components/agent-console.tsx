@@ -1,7 +1,7 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type { AgentUIMessage } from "@/lib/agent/tools";
 import { MandatePanel } from "./mandate-panel";
 import { MandateRequestCard, ProductResults, PurchaseResult } from "./tool-parts";
@@ -16,6 +16,24 @@ interface ApprovalMessage {
   type: "mandate-approval";
   mandateId: string;
   ok: boolean;
+}
+
+const DESKTOP_QUERY = "(min-width: 1024px)"; // Tailwind's `lg`
+
+/**
+ * Whether the ledger sidebar is visible. Only one ledger is mounted at a time, so the
+ * page never polls the mandate twice. Server render assumes desktop.
+ */
+function useIsDesktop(): boolean {
+  return useSyncExternalStore(
+    (onChange) => {
+      const query = window.matchMedia(DESKTOP_QUERY);
+      query.addEventListener("change", onChange);
+      return () => query.removeEventListener("change", onChange);
+    },
+    () => window.matchMedia(DESKTOP_QUERY).matches,
+    () => true,
+  );
 }
 
 /** Server errors arrive as JSON bodies such as `{"error":"…"}`; show just the sentence. */
@@ -44,6 +62,7 @@ export function AgentConsole() {
   const [simulateDecline, setSimulateDecline] = useState(false);
   const { messages, sendMessage, status, error } = useChat<AgentUIMessage>();
   const mandateId = useMemo(() => latestMandateId(messages), [messages]);
+  const isDesktop = useIsDesktop();
   const busy = status === "submitted" || status === "streaming";
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -149,8 +168,8 @@ export function AgentConsole() {
           </div>
         </div>
 
-        {mandateId && (
-          <details className="border-t border-border bg-surface-muted lg:hidden">
+        {mandateId && !isDesktop && (
+          <details className="border-t border-border bg-surface-muted">
             <summary className="cursor-pointer px-4 py-2.5 text-sm font-medium">Mandate, purchases and activity</summary>
             <div className="max-h-[50dvh] overflow-y-auto border-t border-border">
               <MandatePanel mandateId={mandateId} />
@@ -183,9 +202,11 @@ export function AgentConsole() {
         </form>
       </section>
 
-      <aside className="hidden min-h-0 border-l border-border bg-surface-muted lg:block">
-        <MandatePanel mandateId={mandateId} />
-      </aside>
+      {isDesktop && (
+        <aside className="min-h-0 border-l border-border bg-surface-muted">
+          <MandatePanel mandateId={mandateId} />
+        </aside>
+      )}
     </div>
   );
 }
