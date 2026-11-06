@@ -62,6 +62,8 @@ export const activityKinds = [
   "mandate_closed",
   "mandate_revoked",
   "purchase_refunded",
+  "dispute_opened",
+  "dispute_responded",
 ] as const;
 export type ActivityKind = (typeof activityKinds)[number];
 
@@ -77,6 +79,41 @@ export const activity = sqliteTable("activity", {
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
 });
 
+/** The dispute agent's assessment, stored so the human sees the same advice on every visit. */
+export interface DisputeAnalysis {
+  recommendation: "provide_evidence" | "refund" | "accept_claim" | "send_message";
+  confidence: "high" | "medium" | "low";
+  summary: string;
+  rationale: string;
+  /** Draft text for PayPal: evidence notes or a message to the buyer, editable before sending. */
+  draft: string;
+  /** Which model wrote it, or "rules" when the deterministic fallback did. */
+  author: string;
+  createdAt: string;
+}
+
+/** A PayPal dispute mirrored locally and matched to the purchase it is about. */
+export const disputes = sqliteTable("disputes", {
+  /** PayPal's dispute ID, e.g. `PP-D-12345`. */
+  id: text("id").primaryKey(),
+  purchaseId: text("purchase_id").references(() => purchases.id),
+  captureId: text("capture_id"),
+  reason: text("reason").notNull(),
+  status: text("status").notNull(),
+  stage: text("stage"),
+  amountCents: integer("amount_cents"),
+  messages: text("messages", { mode: "json" }).notNull().$type<{ postedBy: string; content: string; postedAt: string | null }[]>(),
+  /** Seller actions PayPal currently allows, from the dispute's HATEOAS links. */
+  actions: text("actions", { mode: "json" }).notNull().$type<string[]>(),
+  sellerResponseDueAt: integer("seller_response_due_at", { mode: "timestamp_ms" }),
+  analysis: text("analysis", { mode: "json" }).$type<DisputeAnalysis>(),
+  /** What the human decided, e.g. "Refunded $19.99". */
+  resolution: text("resolution"),
+  openedAt: integer("opened_at", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export type Dispute = typeof disputes.$inferSelect;
 export type Mandate = typeof mandates.$inferSelect;
 export type Purchase = typeof purchases.$inferSelect;
 export type Activity = typeof activity.$inferSelect;

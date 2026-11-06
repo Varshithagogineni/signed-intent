@@ -55,6 +55,8 @@ async function getAccessToken(): Promise<string> {
 export interface PayPalRequestOptions {
   method?: "GET" | "POST" | "PATCH";
   body?: unknown;
+  /** Multipart body, for endpoints such as dispute evidence that require `multipart/form-data`. */
+  form?: FormData;
   /** Sent as `PayPal-Request-Id` so retries of money-moving calls are idempotent. */
   idempotencyKey?: string;
   /** Sandbox negative testing: forces PayPal to return the given error code. */
@@ -63,13 +65,15 @@ export interface PayPalRequestOptions {
 
 /** Calls the PayPal REST API with OAuth, JSON handling and typed errors. */
 export async function paypalRequest<T>(path: string, options: PayPalRequestOptions = {}): Promise<T> {
-  const { method = options.body === undefined ? "GET" : "POST", body, idempotencyKey, mockErrorCode } = options;
+  const { body, form, idempotencyKey, mockErrorCode } = options;
+  const method = options.method ?? (body === undefined && form === undefined ? "GET" : "POST");
 
   const headers: Record<string, string> = {
     Authorization: `Bearer ${await getAccessToken()}`,
-    "Content-Type": "application/json",
     Prefer: "return=representation",
   };
+  // fetch sets the multipart boundary itself, so only JSON bodies get an explicit type.
+  if (!form) headers["Content-Type"] = "application/json";
   if (idempotencyKey) headers["PayPal-Request-Id"] = idempotencyKey;
   if (mockErrorCode) {
     if (env().PAYPAL_ENVIRONMENT !== "sandbox") throw new Error("Mock responses are sandbox-only");
@@ -79,7 +83,7 @@ export async function paypalRequest<T>(path: string, options: PayPalRequestOptio
   const res = await fetch(`${API_BASE[env().PAYPAL_ENVIRONMENT]}${path}`, {
     method,
     headers,
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: form ?? (body === undefined ? undefined : JSON.stringify(body)),
     cache: "no-store",
   });
 

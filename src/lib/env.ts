@@ -16,6 +16,8 @@ const envSchema = z.object({
   DATABASE_PATH: z.string().default("data/signed-intent.db"),
   /** Ed25519 private key as JWK JSON. Generated on first run in development when absent. */
   SIGNING_PRIVATE_JWK: z.string().optional(),
+  /** ID of the webhook registered with `scripts/register-webhook.mts`; enables dispute notifications. */
+  PAYPAL_WEBHOOK_ID: z.string().optional(),
   /** Public origin used for PayPal return URLs, e.g. https://signed-intent.onrender.com */
   APP_URL: z.url().default("http://localhost:3000"),
 });

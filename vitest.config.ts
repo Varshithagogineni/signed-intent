@@ -9,5 +9,6 @@ export default defineConfig({
       "server-only": fileURLToPath(new URL("./src/test/empty-module.ts", import.meta.url)),
     },
   },
-  test: { environment: "node" },
+  // Playwright owns e2e/; Vitest runs only unit tests next to the code.
+  test: { environment: "node", include: ["src/**/*.test.ts"] },
 });
