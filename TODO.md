@@ -1,7 +1,7 @@
 # Signed Intent — Build Plan
 
 Hackathon: Build What's Next with PayPal and AI (Devpost)
-Deadline: **Thu Nov 12, 2026, 12:00 PM PT** · Demo must stay live until **Dec 15, 2026**
+Deadline: **Thu Nov 12, 2026, 12:00 PM PT** · Demo, credentials and repo must stay live and unchanged until winners are announced **Dec 21, 2026**
 
 Legend: `[ ]` todo · `[x]` done · `[~]` in progress · ⭐ must-have for the demo
 
@@ -37,26 +37,27 @@ Legend: `[ ]` todo · `[x]` done · `[~]` in progress · ⭐ must-have for the d
 - [x] ⭐ Receipt verification page (`/receipts/[id]`)
 - [x] Decline path (`PAYER_CANNOT_PAY` mock via UI toggle)
 
-## Day 4 — Sat Nov 7 · Disputes + refunds
-- [ ] ⭐ Webhook endpoint with signature verification
-- [ ] ⭐ Dispute agent: fetch dispute → match receipt → evidence packet → recommend
-- [ ] ⭐ Human-approved action: refund / accept claim / provide evidence
-- [ ] Sandbox dispute opened end to end
+## Day 4 — Sat Nov 7 · Disputes + refunds (built Fri Nov 6)
+- [x] ⭐ Webhook endpoint with signature verification (+ `scripts/register-webhook.mts`)
+- [x] ⭐ Dispute agent: fetch dispute → match receipt → evidence checks → AI recommendation (rule-based fallback)
+- [x] ⭐ Human-approved action: provide evidence / message buyer / accept claim / refund
+- [x] Independent review of direction and PayPal API usage; fixes applied
+- [ ] Sandbox dispute opened end to end (owner: buyer → Report a problem; then test every action)
 
 ## Day 5 — Sun Nov 8 · Product design pass
-- [ ] ⭐ Mandate card, live spend ledger, agent activity feed, receipt viewer, dispute view
-- [ ] Landing page that explains the problem in one screen
-- [ ] Empty, loading and error states
-- [ ] Stretch: Bryntum timeline of mandates, captures and dispute deadlines
+- [x] ⭐ Mandate card, live spend ledger, agent activity feed, receipt viewer, dispute view
+- [x] "How it works" page that explains the problem in one screen; shared header nav
+- [x] Empty, loading and error states; mobile ledger drawer
+- [ ] ~~Stretch: Bryntum timeline~~ (cut: not worth the time before the deadline)
 
 ## Day 6 — Mon Nov 9 · Feature freeze + hardening
 - [ ] Seed demo merchant catalog
-- [ ] Rate-limit AI routes; token refresh verified
-- [ ] Unit tests for policy engine and receipt signing
+- [x] Rate-limit AI routes (per IP + daily global cap); token refresh verified
+- [x] Unit tests for policy engine, receipt signing, dispute evidence and rate limits (27 tests)
 - [ ] Three clean rehearsals on the hosted URL
 
 ## Day 7 — Tue Nov 10 · Story
-- [ ] README: problem, architecture diagram, setup, judge instructions, tools used
+- [x] README: problem, architecture diagram, trust model, setup, judge instructions, tools used
 - [ ] Video script + recording (< 2:50)
 
 ## Day 8 — Wed Nov 11 · Submit
@@ -65,6 +66,15 @@ Legend: `[ ]` todo · `[x]` done · `[~]` in progress · ⭐ must-have for the d
 
 ## Day 9 — Thu Nov 12 · Buffer only
 - [ ] Confirm submission before 12:00 PM PT
+
+## Owner checklist (in order)
+- [ ] Gemini: turn on pay-as-you-go billing in AI Studio (free tier is 5 req/min; one agent turn uses 4–8)
+- [ ] Render: New → Blueprint → this repo; fill secrets; set `APP_URL`; redeploy; open `/api/health`
+- [ ] On the hosted site: run the water-filter flow once, then open a sandbox dispute on that purchase so judges see a populated Disputes tab
+- [ ] Optional: register the webhook against the Render URL and set `PAYPAL_WEBHOOK_ID`
+- [ ] Make the GitHub repo public
+- [ ] Record the video (script in `docs/submission.md`), upload to YouTube as public
+- [ ] Fill Devpost (text in `docs/submission.md`), select sponsor tools, submit
 
 ## After judging — Tue Dec 22, 2026
 - [ ] Render: suspend/delete the `signed-intent` service and its disk, then remove the card from Billing (do not change the repo or video before winners are announced Dec 21)
