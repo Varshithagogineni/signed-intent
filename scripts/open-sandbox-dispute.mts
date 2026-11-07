@@ -81,7 +81,12 @@ async function fileDispute(page: Page, transactionId: string): Promise<string> {
     const caseId = (await page.locator("body").innerText()).match(/Case ID:\s*(\S+)/)?.[1];
     if (caseId) return caseId;
 
-    if (await shown(page.getByRole("button", { name: /continue reporting this issue/i }))) {
+    if (await shown(page.getByText(/something went wrong on our end/i))) {
+      throw new Error("PayPal's form failed to file this case. Try another purchase.");
+    } else if (await shown(page.getByRole("button", { name: /continue anyway/i }))) {
+      // PayPal checks for a matching earlier payment and asks before filing without one.
+      await page.getByRole("button", { name: /continue anyway/i }).click();
+    } else if (await shown(page.getByRole("button", { name: /continue reporting this issue/i }))) {
       await page.getByRole("button", { name: /continue reporting this issue/i }).click();
     } else if (await shown(page.getByRole("button", { name: /^submit/i }))) {
       await page.getByRole("button", { name: /^submit/i }).click();
