@@ -85,11 +85,34 @@ export async function searchProducts(input: { query: string; maxPriceCents?: Cen
   return products.map(normalize).filter((p): p is Product => p !== null);
 }
 
+/** One retailer's listing of a product. */
+export interface Offer {
+  retailer: string;
+  url: string;
+  priceCents: Cents;
+  inStock: boolean;
+}
+
+/** A product with every USD listing Channel3 knows, cheapest first. */
+export interface ProductDetail extends Product {
+  offers: Offer[];
+}
+
+function detail(product: Channel3Product): ProductDetail | null {
+  const normalized = normalize(product);
+  if (!normalized) return null;
+  const offers = (product.offers ?? [])
+    .filter((o) => o.price.currency === "USD")
+    .map((o) => ({ retailer: o.domain, url: o.url, priceCents: toCents(o.price.price), inStock: o.availability === "InStock" }))
+    .sort((a, b) => a.priceCents - b.priceCents)
+    .slice(0, 5);
+  return { ...normalized, offers };
+}
+
 /**
  * Fetches the authoritative price for a product. Purchases always use this server-side
  * lookup, never a price the model claims, so the agent cannot misstate what it pays.
  */
-export async function getProduct(productId: string): Promise<Product | null> {
-  const product = await channel3<Channel3Product>(`/products/${encodeURIComponent(productId)}`);
-  return normalize(product);
+export async function getProduct(productId: string): Promise<ProductDetail | null> {
+  return detail(await channel3<Channel3Product>(`/products/${encodeURIComponent(productId)}`));
 }

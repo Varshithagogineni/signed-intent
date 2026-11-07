@@ -1,32 +1,47 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fbfbfa;
+  --background: #f6f6f3;
   --foreground: #16161a;
   --surface: #ffffff;
-  --surface-muted: #f4f4f2;
-  --border: #e4e4e0;
-  --muted: #6b6b73;
-  --accent: #3b5bdb;
+  --surface-muted: #efefeb;
+  --border: #e3e3de;
+  --muted: #686870;
+  --accent: #4f46e5;
+  --accent-soft: #eef0ff;
   --paypal: #0070e0;
-  --success: #1f8a4c;
+  --success: #15803d;
+  --success-soft: #ecfdf3;
   --warning: #b45309;
-  --danger: #c92a2a;
+  --warning-soft: #fff7ed;
+  --danger: #c62828;
+  --danger-soft: #fef2f2;
+  /* The "agent computer" window stays dark in both themes. */
+  --terminal: #15171c;
+  --terminal-fg: #d7dae0;
+  --terminal-muted: #8a8f9a;
+  --terminal-border: #2a2d35;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0f0f12;
+    --background: #0e0f12;
     --foreground: #ececef;
-    --surface: #18181c;
-    --surface-muted: #141417;
-    --border: #2a2a30;
+    --surface: #17181c;
+    --surface-muted: #1d1e23;
+    --border: #2a2b31;
     --muted: #9a9aa3;
-    --accent: #748ffc;
+    --accent: #818cf8;
+    --accent-soft: #1e1f3a;
     --paypal: #2b8cf0;
-    --success: #51cf66;
-    --warning: #fcc419;
-    --danger: #ff6b6b;
+    --success: #4ade80;
+    --success-soft: #0f2a1a;
+    --warning: #fbbf24;
+    --warning-soft: #2b1d08;
+    --danger: #f87171;
+    --danger-soft: #2b1111;
+    --terminal: #0a0b0e;
+    --terminal-border: #24262d;
   }
 }
 
@@ -38,10 +53,19 @@
   --color-border: var(--border);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
   --color-paypal: var(--paypal);
   --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
   --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
   --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-terminal: var(--terminal);
+  --color-terminal-fg: var(--terminal-fg);
+  --color-terminal-muted: var(--terminal-muted);
+  --color-terminal-border: var(--terminal-border);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px -12px rgb(16 24 40 / 0.14);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -50,4 +74,5 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 15px;
 }

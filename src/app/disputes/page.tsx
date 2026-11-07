@@ -10,6 +10,15 @@ import { listDisputes } from "@/lib/disputes/service";
 
 export const metadata = { title: "Disputes · Signed Intent" };
 
+/** A coloured rail per row: what needs you stands out in a long list. */
+function rail(status: string, result: ReturnType<typeof outcomeResult>): string {
+  if (result === "won") return "border-l-success";
+  if (result === "lost") return "border-l-danger";
+  if (result === "refunded") return "border-l-border";
+  if (status === "WAITING_FOR_SELLER_RESPONSE") return "border-l-warning";
+  return "border-l-accent";
+}
+
 const OUTCOME_TEXT = { won: "text-success", refunded: "text-muted", lost: "text-danger" };
 
 function EmptyState() {
@@ -42,13 +51,16 @@ async function DisputeList() {
   if (disputes.length === 0) return <EmptyState />;
 
   return (
-    <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface">
+    <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface shadow-card">
       {disputes.map((d) => (
         <li key={d.id}>
-          <Link href={`/disputes/${d.id}`} className="flex items-center gap-4 px-5 py-4 transition hover:bg-surface-muted">
+          <Link
+            href={`/disputes/${d.id}`}
+            className={`flex items-center gap-4 border-l-4 px-5 py-4 transition hover:bg-surface-muted ${rail(d.status, outcomeResult(d.outcome))}`}
+          >
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <span className="truncate font-medium">{d.purchaseTitle ?? "Payment without an agent receipt"}</span>
+                <span className="truncate text-base font-medium">{d.purchaseTitle ?? "Payment without an agent receipt"}</span>
                 <DisputeStatus status={d.status} result={outcomeResult(d.outcome)} />
               </div>
               <div className="mt-0.5 truncate text-sm text-muted">
@@ -60,7 +72,7 @@ async function DisputeList() {
                 </div>
               )}
             </div>
-            {d.amountCents !== null && <div className="font-semibold tabular-nums">{formatCents(d.amountCents)}</div>}
+            {d.amountCents !== null && <div className="text-lg font-semibold tabular-nums">{formatCents(d.amountCents)}</div>}
           </Link>
         </li>
       ))}

@@ -88,12 +88,12 @@ async function DisputeCase({ params }: { params: Promise<{ id: string }> }) {
             <div className="font-semibold tabular-nums">{formatCents(purchase.amountCents)}</div>
           </div>
         )}
-        <ul className="mt-3 space-y-2">
+        <ul className="mt-3 grid gap-2 sm:grid-cols-2">
           {checks.map((check) => (
-            <li key={check.key} className="flex gap-3 text-sm">
+            <li key={check.key} className={`flex gap-3 rounded-xl p-3 text-sm ${check.ok ? "bg-success-soft" : "bg-danger-soft"}`}>
               <span
-                className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full text-xs font-bold ${
-                  check.ok ? "bg-success/15 text-success" : "bg-danger/15 text-danger"
+                className={`mt-0.5 grid size-6 shrink-0 place-items-center rounded-full text-sm font-bold text-white ${
+                  check.ok ? "bg-success" : "bg-danger"
                 }`}
                 aria-label={check.ok ? "passed" : "failed"}
               >

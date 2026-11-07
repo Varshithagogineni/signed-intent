@@ -15,8 +15,8 @@ interface MandateDetail {
 const POLL_MS = 2000;
 
 const STATUS_STYLES: Record<string, string> = {
-  pending_approval: "bg-warning/10 text-warning",
-  active: "bg-success/10 text-success",
+  pending_approval: "bg-warning-soft text-warning",
+  active: "bg-success-soft text-success",
   closed: "bg-muted/10 text-muted",
   expired: "bg-muted/10 text-muted",
   revoked: "bg-danger/10 text-danger",
@@ -58,17 +58,21 @@ export function MandatePanel({ mandateId }: { mandateId: string | null }) {
 
   if (!mandateId || !detail) {
     return (
-      <div className="flex h-full flex-col items-center justify-center p-8 text-center text-sm text-muted">
-        <div className="text-base font-medium text-foreground">No mandate yet</div>
-        <p className="mt-2 max-w-xs">
-          Tell the agent what to buy and your budget. It will ask you to approve a spending limit in PayPal before it can
-          spend anything.
+      <div className="flex h-full flex-col items-center justify-center p-8 text-center">
+        <div className="grid size-12 place-items-center rounded-2xl bg-surface text-xl shadow-card" aria-hidden>
+          $
+        </div>
+        <div className="mt-4 text-lg font-semibold">No budget yet</div>
+        <p className="mt-2 max-w-xs text-sm text-muted">
+          Tell the agent what you need and your budget. It asks you to approve a spending limit in PayPal before it can spend
+          anything, and it checks with you before it buys.
         </p>
       </div>
     );
   }
 
   const { mandate, purchases, activity } = detail;
+  const remaining = mandate.capCents - mandate.spentCents;
   const spentPct = Math.min(100, (mandate.spentCents / mandate.capCents) * 100);
 
   const revoke = async () => {
@@ -78,35 +82,31 @@ export function MandatePanel({ mandateId }: { mandateId: string | null }) {
   };
 
   return (
-    <div className="flex h-full flex-col gap-5 overflow-y-auto p-5">
-      <section>
+    <div className="flex h-full flex-col gap-6 overflow-y-auto p-6">
+      <section className="rounded-2xl border border-border bg-surface p-5 shadow-card">
         <div className="flex items-center justify-between">
-          <h2 className="text-xs font-medium tracking-wide text-muted uppercase">Mandate</h2>
-          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[mandate.status]}`}>
+          <h2 className="text-sm font-semibold">Mandate</h2>
+          <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS_STYLES[mandate.status]}`}>
             {mandate.status.replace("_", " ")}
           </span>
         </div>
-        <p className="mt-2 text-sm">{mandate.goal}</p>
-        <div className="mt-4 flex items-baseline justify-between">
-          <span className="text-3xl font-semibold tabular-nums">{formatCents(mandate.capCents - mandate.spentCents)}</span>
-          <span className="text-sm text-muted">left of {formatCents(mandate.capCents)}</span>
+        <p className="mt-1 text-sm text-muted">{mandate.goal}</p>
+        <div className="mt-4 text-4xl font-semibold tracking-tight tabular-nums">{formatCents(remaining)}</div>
+        <div className="text-sm text-muted">left of {formatCents(mandate.capCents)}</div>
+        <div className="mt-3 h-3 overflow-hidden rounded-full bg-border">
+          <div className="h-full rounded-full bg-accent transition-all duration-700" style={{ width: `${spentPct}%` }} />
         </div>
-        <div className="mt-2 h-2 overflow-hidden rounded-full bg-border">
-          <div className="h-full rounded-full bg-accent transition-all duration-500" style={{ width: `${spentPct}%` }} />
+        <div className="mt-2 text-sm text-muted">
+          Spent {formatCents(mandate.spentCents)}
+          {mandate.maxPerPurchaseCents !== null && ` · max ${formatCents(mandate.maxPerPurchaseCents)} per item`}
         </div>
-        <dl className="mt-3 grid grid-cols-2 gap-y-1 text-xs text-muted">
-          <dt>Expires</dt>
+        <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 border-t border-border pt-4 text-sm">
+          <dt className="text-muted">Expires</dt>
           <dd className="text-right">{formatDate(mandate.expiresAt)}</dd>
-          {mandate.maxPerPurchaseCents !== null && (
-            <>
-              <dt>Per purchase</dt>
-              <dd className="text-right">{formatCents(mandate.maxPerPurchaseCents)}</dd>
-            </>
-          )}
           {mandate.authorizationId && (
             <>
-              <dt>PayPal hold</dt>
-              <dd className="truncate text-right font-mono">{mandate.authorizationId}</dd>
+              <dt className="text-muted">PayPal hold</dt>
+              <dd className="truncate text-right font-mono text-xs leading-5">{mandate.authorizationId}</dd>
             </>
           )}
         </dl>
@@ -115,7 +115,7 @@ export function MandatePanel({ mandateId }: { mandateId: string | null }) {
             type="button"
             onClick={revoke}
             disabled={revoking}
-            className="mt-3 w-full rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-danger transition hover:bg-danger/5 disabled:opacity-50"
+            className="mt-4 h-9 w-full rounded-xl border border-danger/30 text-sm font-medium text-danger transition hover:bg-danger-soft disabled:opacity-50"
           >
             {revoking ? "Revoking…" : "Revoke agent access"}
           </button>
@@ -124,26 +124,29 @@ export function MandatePanel({ mandateId }: { mandateId: string | null }) {
 
       {purchases.length > 0 && (
         <section>
-          <h2 className="text-xs font-medium tracking-wide text-muted uppercase">Purchases</h2>
+          <h2 className="text-sm font-semibold">Purchases</h2>
           <ul className="mt-2 space-y-2">
             {purchases.map((p) => (
               <li key={p.id}>
                 <a
                   href={`/receipts/${p.id}`}
-                  className="flex items-center gap-3 rounded-lg border border-border p-2 transition hover:border-accent"
+                  className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3 transition hover:border-accent"
                 >
                   {p.imageUrl && (
                     // eslint-disable-next-line @next/next/no-img-element -- remote catalog image
-                    <img src={p.imageUrl} alt="" className="size-10 rounded bg-white object-contain" />
+                    <img src={p.imageUrl} alt="" className="size-12 rounded-lg bg-white object-contain" />
                   )}
-                  <div className="min-w-0 flex-1 text-xs">
-                    <div className="truncate font-medium">{p.title}</div>
-                    <div className="text-muted">
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-medium">{p.title}</div>
+                    <div className="font-mono text-xs text-muted">
                       {p.retailer}
                       {p.status === "refunded" && " · refunded"}
                     </div>
                   </div>
-                  <div className="text-sm font-semibold tabular-nums">{formatCents(p.amountCents)}</div>
+                  <div className="text-right">
+                    <div className="font-semibold tabular-nums">{formatCents(p.amountCents)}</div>
+                    <div className="text-xs text-accent">receipt ↗</div>
+                  </div>
                 </a>
               </li>
             ))}
@@ -152,15 +155,13 @@ export function MandatePanel({ mandateId }: { mandateId: string | null }) {
       )}
 
       <section>
-        <h2 className="text-xs font-medium tracking-wide text-muted uppercase">Activity</h2>
-        <ol className="mt-2 space-y-2">
+        <h2 className="text-sm font-semibold">Activity</h2>
+        <ol className="mt-3 ml-1 space-y-3 border-l-2 border-border pl-4">
           {activity.map((a) => (
-            <li key={a.id} className="flex gap-2 text-xs">
-              <span className={`mt-1.5 size-1.5 shrink-0 rounded-full ${ACTIVITY_DOT[a.kind] ?? "bg-accent"}`} />
-              <div className="min-w-0">
-                <div>{a.message}</div>
-                <div className="text-muted">{formatTime(a.createdAt)}</div>
-              </div>
+            <li key={a.id} className="relative text-sm">
+              <span className={`absolute top-1.5 -left-[22px] size-2.5 rounded-full ring-4 ring-surface-muted ${ACTIVITY_DOT[a.kind] ?? "bg-accent"}`} />
+              <div>{a.message}</div>
+              <div className="text-xs text-muted">{formatTime(a.createdAt)}</div>
             </li>
           ))}
         </ol>

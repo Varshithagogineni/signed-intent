@@ -1,7 +1,7 @@
 import "server-only";
 import { type InferUITools, tool, type UIDataTypes, type UIMessage } from "ai";
 import { z } from "zod";
-import { searchProducts } from "@/lib/catalog/channel3";
+import { getProduct, searchProducts } from "@/lib/catalog/channel3";
 import { toCents } from "@/lib/money";
 import { createMandate, getMandate, purchase } from "@/lib/mandates/service";
 
@@ -83,6 +83,47 @@ export function createAgentTools({ simulateDecline }: AgentToolOptions) {
       }),
     }),
 
+    inspectProduct: tool({
+      description:
+        "Check one product's live listing before recommending it: current price, stock, rating, key features and " +
+        "every retailer offering it. Use it on the most promising search results.",
+      inputSchema: z.object({ productId: z.string().describe("The id from searchProducts") }),
+      execute: async ({ productId }) => {
+        const product = await getProduct(productId);
+        return product ? { product } : { error: `Product ${productId} has no purchasable listing.` };
+      },
+    }),
+
+    recommendProducts: tool({
+      description:
+        "Show the person a shortlist of 1-3 products to choose from, with your top pick, and ask whether they like it. " +
+        "Product details are loaded from the catalog, so pass only ids and your reasons. After calling this, stop and wait.",
+      inputSchema: z.object({
+        picks: z
+          .array(
+            z.object({
+              productId: z.string(),
+              why: z.string().min(5).max(160).describe("One short sentence on why it fits what they asked for"),
+            }),
+          )
+          .min(1)
+          .max(3),
+        topPickId: z.string().describe("The productId you recommend most"),
+        question: z.string().max(200).describe("A short, friendly question, e.g. asking if they want the top pick"),
+      }),
+      execute: async ({ picks, topPickId, question }) => {
+        const loaded = await Promise.all(
+          picks.map(async ({ productId, why }) => {
+            const product = await getProduct(productId).catch(() => null);
+            return product && { product, why };
+          }),
+        );
+        const shortlist = loaded.filter((p) => p !== null);
+        if (shortlist.length === 0) return { error: "None of these products is available any more. Search again." };
+        return { picks: shortlist, topPickId, question };
+      },
+    }),
+
     purchase: tool({
       description:
         "Buy one product under an active mandate. The price is looked up server-side and the mandate policy " +
@@ -103,6 +144,7 @@ export function createAgentTools({ simulateDecline }: AgentToolOptions) {
         return {
           status: outcome.status,
           remainingCents: outcome.remainingCents,
+          authorizationId: getMandate(input.mandateId)?.authorizationId ?? null,
           purchase: {
             id: p.id,
             title: p.title,

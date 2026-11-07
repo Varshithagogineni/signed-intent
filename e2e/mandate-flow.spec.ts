@@ -27,7 +27,7 @@ async function approveInPayPal(popup: Page) {
   await popup.waitForEvent("close", { timeout: 60_000 });
 }
 
-test("agent buys inside a PayPal mandate and the policy blocks an overspend", async ({ page }) => {
+test("agent recommends, buys inside a PayPal mandate and the policy blocks an overspend", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: /water filter pitcher, budget \$40/i }).click();
 
@@ -38,7 +38,11 @@ test("agent buys inside a PayPal mandate and the policy blocks an overspend", as
   const [popup] = await Promise.all([page.waitForEvent("popup"), approveButton.click()]);
   await approveInPayPal(popup);
 
-  // After approval the agent confirms the mandate, searches and buys.
+  // After approval the agent searches, checks listings and asks before buying.
+  const buy = page.getByRole("button", { name: "Buy this" });
+  await expect(buy).toBeVisible({ timeout: 180_000 });
+  await page.screenshot({ path: "e2e/artifacts/02a-recommendations.png" });
+  await buy.click();
   await expect(page.getByText(/^Paid \$[\d.]+ via PayPal/)).toBeVisible({ timeout: 120_000 });
   await expect(page.getByText("active", { exact: true })).toBeVisible();
   await page.screenshot({ path: "e2e/artifacts/02-purchase-completed.png" });
@@ -49,6 +53,6 @@ test("agent buys inside a PayPal mandate and the policy blocks an overspend", as
   await page.screenshot({ path: "e2e/artifacts/03-overspend-blocked.png" });
 
   await page.getByRole("link", { name: /view signed receipt/i }).first().click();
-  await expect(page.getByText("✓ Signature valid")).toBeVisible();
+  await expect(page.getByText("Signature valid", { exact: true })).toBeVisible();
   await page.screenshot({ path: "e2e/artifacts/04-receipt.png", fullPage: true });
 });

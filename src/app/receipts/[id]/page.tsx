@@ -33,6 +33,7 @@ async function Receipt({ params }: { params: Promise<{ id: string }> }) {
     claims = null;
   }
 
+  const MONO = new Set(["Mandate", "PayPal authorization", "PayPal capture"]);
   const rows: [string, string][] = claims
     ? [
         ["Human's goal", claims.mandate.goal],
@@ -48,54 +49,72 @@ async function Receipt({ params }: { params: Promise<{ id: string }> }) {
     : [];
 
   return (
-    <article className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="text-xs font-medium tracking-wide text-muted uppercase">Intent receipt</div>
-          <h1 className="mt-1 text-xl font-semibold">{purchase.title}</h1>
-        </div>
-        {claims ? (
-          <span className="shrink-0 rounded-full bg-success/10 px-3 py-1 text-xs font-semibold text-success">✓ Signature valid</span>
-        ) : (
-          <span className="shrink-0 rounded-full bg-danger/10 px-3 py-1 text-xs font-semibold text-danger">✗ Invalid signature</span>
-        )}
-      </div>
-
-      {(purchase.status === "refunded" || dispute) && (
-        <div className="mt-4 flex flex-wrap gap-2 text-xs">
-          {purchase.status === "refunded" && (
-            <span className="rounded-full bg-muted/10 px-2.5 py-1 font-medium text-muted">Refunded to the buyer</span>
-          )}
-          {dispute && (
-            <Link href={`/disputes/${dispute.id}`} className="rounded-full bg-warning/10 px-2.5 py-1 font-medium text-warning hover:underline">
-              Disputed · {dispute.id} →
-            </Link>
-          )}
-        </div>
-      )}
-
-      <dl className="mt-6 divide-y divide-border text-sm">
-        {rows.map(([label, value]) => (
-          <div key={label} className="grid gap-1 py-2.5 sm:grid-cols-[160px_1fr] sm:gap-4">
-            <dt className="text-muted">{label}</dt>
-            <dd className="break-words">{value}</dd>
+    <article className="overflow-hidden rounded-2xl border border-border bg-surface shadow-card">
+      {claims ? (
+        <div className="flex items-center gap-3 bg-success-soft px-6 py-4 text-success">
+          <span className="grid size-8 place-items-center rounded-full bg-success text-white">✓</span>
+          <div>
+            <div className="font-semibold">Signature valid</div>
+            <div className="text-sm opacity-80">Ed25519 · checked against the public key at /.well-known/jwks.json</div>
           </div>
-        ))}
-      </dl>
+        </div>
+      ) : (
+        <div className="flex items-center gap-3 bg-danger-soft px-6 py-4 font-semibold text-danger">✗ Invalid signature</div>
+      )}
+      <div className="p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="text-xs font-semibold tracking-wide text-muted uppercase">Intent receipt</div>
+            <h1 className="mt-1 text-2xl font-semibold">{purchase.title}</h1>
+            <div className="mt-1 text-sm text-muted">
+              {purchase.retailer} · {formatCents(purchase.amountCents)}
+            </div>
+          </div>
+          {purchase.imageUrl && (
+            // eslint-disable-next-line @next/next/no-img-element -- remote catalog image
+            <img src={purchase.imageUrl} alt="" className="size-20 shrink-0 rounded-xl bg-white object-contain p-1" />
+          )}
+        </div>
 
-      <details className="mt-6">
-        <summary className="cursor-pointer text-sm font-medium text-accent">Raw signed token (JWS)</summary>
-        <pre className="mt-2 overflow-x-auto rounded-lg bg-surface-muted p-3 font-mono text-xs break-all whitespace-pre-wrap">
-          {purchase.signedReceipt}
-        </pre>
-        <p className="mt-2 text-xs text-muted">
-          Verify independently with the public key at{" "}
-          <a href="/.well-known/jwks.json" className="text-accent hover:underline">
-            /.well-known/jwks.json
-          </a>{" "}
-          (Ed25519, EdDSA).
-        </p>
-      </details>
+        {(purchase.status === "refunded" || dispute) && (
+          <div className="mt-4 flex flex-wrap gap-2 text-xs">
+            {purchase.status === "refunded" && (
+              <span className="rounded-full bg-muted/10 px-2.5 py-1 font-medium text-muted">Refunded to the buyer</span>
+            )}
+            {dispute && (
+              <Link
+                href={`/disputes/${dispute.id}`}
+                className="rounded-full bg-warning/10 px-2.5 py-1 font-medium text-warning hover:underline"
+              >
+                Disputed · {dispute.id} →
+              </Link>
+            )}
+          </div>
+        )}
+
+        <dl className="mt-6 divide-y divide-border text-sm">
+          {rows.map(([label, value]) => (
+            <div key={label} className="grid gap-1 py-2.5 sm:grid-cols-[160px_1fr] sm:gap-4">
+              <dt className="text-muted">{label}</dt>
+              <dd className={`break-words ${MONO.has(label) ? "font-mono text-[13px]" : ""}`}>{value}</dd>
+            </div>
+          ))}
+        </dl>
+
+        <details className="mt-6">
+          <summary className="cursor-pointer text-sm font-medium text-accent">Raw signed token (JWS)</summary>
+          <pre className="mt-2 overflow-x-auto rounded-lg bg-surface-muted p-3 font-mono text-xs break-all whitespace-pre-wrap">
+            {purchase.signedReceipt}
+          </pre>
+          <p className="mt-2 text-xs text-muted">
+            Verify independently with the public key at{" "}
+            <a href="/.well-known/jwks.json" className="text-accent hover:underline">
+              /.well-known/jwks.json
+            </a>{" "}
+            (Ed25519, EdDSA).
+          </p>
+        </details>
+      </div>
     </article>
   );
 }
