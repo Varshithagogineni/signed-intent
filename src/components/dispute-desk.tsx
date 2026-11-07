@@ -32,6 +32,8 @@ export interface DisputeDeskProps {
   /** Actions PayPal allows now, plus "refund" when the purchase can still be refunded. */
   available: Action[];
   resolved: boolean;
+  /** The merchant has responded and PayPal offers no further action while it decides. */
+  waiting: boolean;
   /** PayPal only accepts evidence on claims; in the sandbox we can escalate an inquiry. */
   canRequestEvidence: boolean;
 }
@@ -41,12 +43,23 @@ async function post(url: string, body: unknown): Promise<{ ok: boolean; data: { 
   return { ok: res.ok, data: await res.json().catch(() => ({ error: "Unexpected server response." })) };
 }
 
-export function DisputeDesk({ disputeId, analysis: initial, available, resolved, canRequestEvidence }: DisputeDeskProps) {
+function StatusNote({ resolved }: { resolved: boolean }) {
+  return resolved ? (
+    <p className="rounded-lg bg-success/5 px-3 py-2 text-sm text-success">This dispute is resolved. No further action is needed.</p>
+  ) : (
+    <p className="rounded-lg bg-accent/5 px-3 py-2 text-sm text-accent">
+      PayPal is reviewing your response. There is nothing more to do until PayPal decides.
+    </p>
+  );
+}
+
+export function DisputeDesk({ disputeId, analysis: initial, available, resolved, waiting, canRequestEvidence }: DisputeDeskProps) {
+  const locked = resolved || waiting;
   const router = useRouter();
   const [analysis, setAnalysis] = useState(initial);
   const [draft, setDraft] = useState(initial?.draft ?? "");
-  // The first analysis starts on mount when none is stored yet.
-  const [analyzing, setAnalyzing] = useState(!initial);
+  // The first analysis starts on mount when none is stored yet and a response is still possible.
+  const [analyzing, setAnalyzing] = useState(!initial && !locked);
   const [sending, setSending] = useState<Action | "sandbox_request_evidence" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,7 +81,7 @@ export function DisputeDesk({ disputeId, analysis: initial, available, resolved,
   };
 
   useEffect(() => {
-    if (initial) return;
+    if (initial || locked) return;
     let cancelled = false;
     void post(`/api/disputes/${disputeId}/analyze`, { force: false }).then((result) => {
       if (!cancelled) applyAnalysis(result);
@@ -76,7 +89,7 @@ export function DisputeDesk({ disputeId, analysis: initial, available, resolved,
     return () => {
       cancelled = true;
     };
-  }, [initial, disputeId, applyAnalysis]);
+  }, [initial, locked, disputeId, applyAnalysis]);
 
   const act = async (action: Action | "sandbox_request_evidence") => {
     if (action !== "sandbox_request_evidence" && !window.confirm(CONFIRM[action])) return;
@@ -87,6 +100,14 @@ export function DisputeDesk({ disputeId, analysis: initial, available, resolved,
     if (!ok) setError(data.error ?? "PayPal did not accept this action.");
     router.refresh();
   };
+
+  if (!analysis && locked) {
+    return (
+      <section className="rounded-2xl border border-border bg-surface p-5">
+        <StatusNote resolved={resolved} />
+      </section>
+    );
+  }
 
   if (!analysis) {
     return (
@@ -126,8 +147,10 @@ export function DisputeDesk({ disputeId, analysis: initial, available, resolved,
       <p className="mt-1 text-sm">{analysis.summary}</p>
       <p className="mt-2 text-sm text-muted">{analysis.rationale}</p>
 
-      {resolved ? (
-        <p className="mt-4 rounded-lg bg-success/5 px-3 py-2 text-sm text-success">This dispute is resolved. No further action is needed.</p>
+      {locked ? (
+        <div className="mt-4">
+          <StatusNote resolved={resolved} />
+        </div>
       ) : (
         <>
           <label className="mt-5 block text-xs font-medium text-muted" htmlFor="draft">

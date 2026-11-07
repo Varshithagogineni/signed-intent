@@ -18,9 +18,10 @@ async function DisputeCase({ params }: { params: Promise<{ id: string }> }) {
   const { dispute, purchase, mandate, checks } = found;
 
   const resolved = dispute.status === "RESOLVED";
+  const waiting = !resolved && dispute.actions.length === 0 && dispute.resolution !== null;
   const available: DisputeDeskProps["available"] = [
     ...(["provide_evidence", "send_message", "accept_claim"] as const).filter((a) => dispute.actions.includes(a)),
-    ...(purchase?.status === "completed" ? (["refund"] as const) : []),
+    ...(purchase?.status === "completed" && !waiting ? (["refund"] as const) : []),
   ];
   const buyerMessages = dispute.messages.filter((m) => m.postedBy === "BUYER");
 
@@ -101,6 +102,7 @@ async function DisputeCase({ params }: { params: Promise<{ id: string }> }) {
         analysis={dispute.analysis}
         available={available}
         resolved={resolved}
+        waiting={waiting}
         canRequestEvidence={env().PAYPAL_ENVIRONMENT === "sandbox" && !dispute.actions.includes("provide_evidence")}
       />
     </div>

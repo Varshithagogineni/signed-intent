@@ -51,8 +51,10 @@ function upsert(remote: PayPalDispute): Dispute {
   };
 
   if (existing) {
-    // A new stage unlocks different PayPal actions, so the old advice no longer applies.
-    const changed = existing.stage !== remote.stage || existing.actions.join() !== remote.actions.join();
+    // New PayPal actions (e.g. a new stage) make the old advice stale. When none are left,
+    // PayPal is deciding, so keep the advice that led to the response.
+    const changed =
+      remote.actions.length > 0 && (existing.stage !== remote.stage || existing.actions.join() !== remote.actions.join());
     db.update(disputes)
       .set({ ...values, ...(changed && { analysis: null }) })
       .where(eq(disputes.id, remote.id))
@@ -139,7 +141,12 @@ export async function getDisputeCase(id: string): Promise<DisputeCase | undefine
     : [];
 
   const evidence: EvidenceInput = {
-    dispute: { reason: dispute.reason, amountCents: dispute.amountCents, captureId: dispute.captureId },
+    dispute: {
+      reason: dispute.reason,
+      amountCents: dispute.amountCents,
+      captureId: dispute.captureId,
+      buyerStatements: dispute.messages.filter((m) => m.postedBy === "BUYER").map((m) => m.content),
+    },
     purchase,
     mandate,
     mandateCaptures,

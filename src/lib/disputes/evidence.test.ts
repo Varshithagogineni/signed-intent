@@ -4,7 +4,7 @@ import { authorizationProven, baselineAnalysis, checkEvidence, type EvidenceInpu
 const APP_URL = "https://signed-intent.example";
 
 const valid: EvidenceInput = {
-  dispute: { reason: "UNAUTHORISED", amountCents: 1999, captureId: "CAP123" },
+  dispute: { reason: "UNAUTHORISED", amountCents: 1999, captureId: "CAP123", buyerStatements: ["I never bought this."] },
   purchase: {
     id: "pur_abc",
     title: "Brita Pitcher",

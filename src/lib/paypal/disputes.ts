@@ -29,6 +29,8 @@ interface PayPalDisputeResource {
   seller_response_due_date?: string;
   disputed_transactions?: { seller_transaction_id?: string; buyer_transaction_id?: string; invoice_number?: string }[];
   messages?: { posted_by: string; time_posted?: string; content: string }[];
+  /** The buyer's complaint arrives here (source SUBMITTED_BY_BUYER), not in `messages`. */
+  evidences?: { notes?: string; source?: string; date?: string }[];
   links?: Link[];
 }
 
@@ -59,6 +61,17 @@ function advertises(links: Link[], action: DisputeAction): boolean {
   return links.some((l) => l.rel === action || l.rel === hyphenated || l.href.endsWith(`/${hyphenated}`));
 }
 
+const EVIDENCE_SOURCES: Record<string, string> = { SUBMITTED_BY_BUYER: "BUYER", SUBMITTED_BY_SELLER: "SELLER" };
+
+/** One timeline of what each side said: chat messages plus the notes filed as evidence. */
+function conversation(d: PayPalDisputeResource): PayPalDispute["messages"] {
+  const messages = (d.messages ?? []).map((m) => ({ postedBy: m.posted_by, content: m.content, postedAt: m.time_posted ?? null }));
+  const notes = (d.evidences ?? [])
+    .filter((e) => e.notes && e.source && EVIDENCE_SOURCES[e.source])
+    .map((e) => ({ postedBy: EVIDENCE_SOURCES[e.source!], content: e.notes!, postedAt: e.date ?? null }));
+  return [...notes, ...messages].sort((a, b) => (a.postedAt ?? "").localeCompare(b.postedAt ?? ""));
+}
+
 function normalize(d: PayPalDisputeResource): PayPalDispute {
   const transaction = d.disputed_transactions?.[0];
   return {
@@ -69,7 +82,7 @@ function normalize(d: PayPalDisputeResource): PayPalDispute {
     amountCents: d.dispute_amount ? toCents(d.dispute_amount.value) : null,
     captureId: transaction?.seller_transaction_id ?? null,
     invoiceId: transaction?.invoice_number ?? null,
-    messages: (d.messages ?? []).map((m) => ({ postedBy: m.posted_by, content: m.content, postedAt: m.time_posted ?? null })),
+    messages: conversation(d),
     sellerResponseDueAt: d.seller_response_due_date ? new Date(d.seller_response_due_date) : null,
     actions: disputeActions.filter((a) => advertises(d.links ?? [], a)),
     createdAt: new Date(d.create_time),

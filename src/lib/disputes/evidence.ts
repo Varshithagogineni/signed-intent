@@ -20,7 +20,13 @@ export function describeReason(reason: string): string {
 
 /** Everything the evidence checks look at, gathered by the dispute service. */
 export interface EvidenceInput {
-  dispute: { reason: string; amountCents: Cents | null; captureId: string | null };
+  dispute: {
+    reason: string;
+    amountCents: Cents | null;
+    captureId: string | null;
+    /** What the buyer wrote to PayPal, oldest first. Untrusted text, shown to the agent as such. */
+    buyerStatements: string[];
+  };
   purchase: {
     id: string;
     title: string;
