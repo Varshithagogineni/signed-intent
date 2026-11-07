@@ -42,7 +42,9 @@ Legend: `[ ]` todo · `[x]` done · `[~]` in progress · ⭐ must-have for the d
 - [x] ⭐ Dispute agent: fetch dispute → match receipt → evidence checks → AI recommendation (rule-based fallback)
 - [x] ⭐ Human-approved action: provide evidence / message buyer / accept claim / refund
 - [x] Independent review of direction and PayPal API usage; fixes applied
-- [ ] Sandbox dispute opened end to end (owner: buyer → Report a problem; then test every action)
+- [x] Sandbox dispute opened end to end: PP-R-CVJ-10197002 ("charged twice") synced, matched, analyzed, signed evidence accepted by PayPal (now under review)
+- [x] `scripts/open-sandbox-dispute.mts` files a dispute as the sandbox buyer (PayPal has no create-dispute API)
+- [ ] Still untested on a live dispute: message buyer, accept claim, refund (cheap to try on PP-R-HKF-10197004)
 
 ## Day 5 — Sun Nov 8 · Product design pass
 - [x] ⭐ Mandate card, live spend ledger, agent activity feed, receipt viewer, dispute view
@@ -70,7 +72,7 @@ Legend: `[ ]` todo · `[x]` done · `[~]` in progress · ⭐ must-have for the d
 ## Owner checklist (in order)
 - [ ] Gemini: turn on pay-as-you-go billing in AI Studio (free tier is 5 req/min; one agent turn uses 4–8)
 - [ ] Render: New → Blueprint → this repo; fill secrets; set `APP_URL`; redeploy; open `/api/health`
-- [ ] On the hosted site: run the water-filter flow once, then open a sandbox dispute on that purchase so judges see a populated Disputes tab
+- [ ] On the hosted site: run the water-filter flow once, then `node --env-file=.env.local scripts/open-sandbox-dispute.mts <pur_… from the receipt>` and press *Check PayPal for disputes* a few minutes later, so judges see a populated Disputes tab
 - [ ] Optional: register the webhook against the Render URL and set `PAYPAL_WEBHOOK_ID`
 - [ ] Make the GitHub repo public
 - [ ] Record the video (script in `docs/submission.md`), upload to YouTube as public

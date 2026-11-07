@@ -105,7 +105,7 @@ To approve a mandate you need a sandbox **Personal** account: developer.paypal.c
 4. Ask *"Now try to buy a $120 blender anyway"* and watch the policy block it.
 5. Tick *"make PayPal decline the next payment"* to see decline handling.
 6. Open **View signed receipt** to verify the signature.
-7. **Dispute it:** log in to [sandbox.paypal.com](https://www.sandbox.paypal.com/) as the buyer, open the payment and choose *Report a problem*. Then open **Disputes** and press *Check PayPal for disputes* (or let the webhook deliver it). Open the dispute to see the evidence checks and the agent's recommendation, and approve a response.
+7. **Dispute it:** run `node --env-file=.env.local scripts/open-sandbox-dispute.mts <purchase id>` (the `pur_…` ID on the receipt), or log in to [sandbox.paypal.com](https://www.sandbox.paypal.com/) as the buyer, open the payment and choose *Report a problem*. PayPal takes a few minutes to list a new dispute. Then open **Disputes** and press *Check PayPal for disputes* (or let the webhook deliver it). Open the dispute to see the evidence checks and the agent's recommendation, and approve a response.
 
 ## Deploy to Render
 
@@ -130,6 +130,7 @@ The repo includes a [Render Blueprint](render.yaml): a Node web service with a 1
 | `node --env-file=.env.local scripts/sandbox-smoke.mts` | Exercise PayPal sandbox primitives directly |
 | `node scripts/generate-signing-key.mts` | Create a production signing key |
 | `node --env-file=.env.local scripts/register-webhook.mts <url>` | Register the PayPal dispute webhook |
+| `node --env-file=.env.local scripts/open-sandbox-dispute.mts <purchase id>` | File a "charged twice" dispute as the sandbox buyer (PayPal has no API for this) |
 
 ## Project structure
 
