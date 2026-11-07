@@ -1,4 +1,4 @@
-import type { DisputeAnalysis } from "@/lib/db/schema";
+import type { DisputeAnalysis, DisputeOutcome } from "@/lib/db/schema";
 import { type Cents, formatUsd } from "@/lib/money";
 
 /** PayPal dispute reasons, in words a person can act on. */
@@ -16,6 +16,29 @@ export const REASON_LABELS: Record<string, string> = {
 
 export function describeReason(reason: string): string {
   return REASON_LABELS[reason] ?? reason.toLowerCase().replaceAll("_", " ");
+}
+
+const OUTCOME_LABELS: Record<string, string> = {
+  RESOLVED_SELLER_FAVOUR: "PayPal ruled in your favor",
+  RESOLVED_BUYER_FAVOUR: "PayPal ruled for the buyer",
+  RESOLVED_WITH_PAYOUT: "PayPal paid the buyer itself",
+  CANCELED_BY_BUYER: "The buyer cancelled the dispute",
+  ACCEPTED: "You accepted the claim",
+  DENIED: "PayPal denied the claim",
+};
+
+/** PayPal's ruling in words, e.g. "PayPal ruled in your favor: buyer billed only once". */
+export function describeOutcome(outcome: DisputeOutcome): string {
+  const label = OUTCOME_LABELS[outcome.code] ?? outcome.code.toLowerCase().replaceAll("_", " ");
+  return outcome.reason ? `${label}: ${outcome.reason.toLowerCase().replaceAll("_", " ")}` : label;
+}
+
+/** Whether the seller kept the money, lost it, or neither applies (e.g. still open). */
+export function outcomeResult(outcome: DisputeOutcome | null): "won" | "lost" | null {
+  if (!outcome) return null;
+  if (outcome.code === "RESOLVED_SELLER_FAVOUR" || outcome.code === "CANCELED_BY_BUYER" || outcome.code === "DENIED") return "won";
+  if (outcome.code === "RESOLVED_BUYER_FAVOUR" || outcome.code === "ACCEPTED") return "lost";
+  return null;
 }
 
 /** Everything the evidence checks look at, gathered by the dispute service. */

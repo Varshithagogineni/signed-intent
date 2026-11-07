@@ -15,6 +15,13 @@
       "when": 1793996242505,
       "tag": "0001_disputes",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1794068016621,
+      "tag": "0002_dispute_outcome",
+      "breakpoints": true
     }
   ]
 }

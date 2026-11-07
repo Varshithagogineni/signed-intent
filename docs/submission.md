@@ -52,6 +52,7 @@ Signed Intent is a shopping agent that can only spend money you've approved in P
 
 - The agent is genuinely constrained: money only moves through one audited function, behind deterministic policy and a real PayPal hold.
 - Receipts are verifiable by anyone, not just stored in our database, and they get used: a dispute arrives already matched to its evidence.
+- It works on PayPal's side too: on a real sandbox "charged twice" dispute, the agent's evidence went in through the Disputes API and PayPal ruled for the seller (*buyer billed only once*) about three minutes later.
 - A full end-to-end test runs the real sandbox approval and purchase in about 35 seconds.
 
 ### What we learned
@@ -88,7 +89,7 @@ nextjs, typescript, react, tailwindcss, paypal, paypal-orders-api, paypal-disput
 
 # Demo video script (target 2:30, hard limit < 3:00)
 
-Revoke is left out to keep time; mention it on the closing card if there is room. Create the dispute before recording (it takes a few minutes to appear in the API), never on camera.
+Revoke is left out to keep time; mention it on the closing card if there is room. Create the dispute before recording with `scripts/open-sandbox-dispute.mts` (it takes a few minutes to appear in the API), never on camera. After approving the evidence, a won dispute (PayPal's ruling shown in green) makes a strong last frame for the scene.
 
 Record at 1440×900 or larger, browser zoom 110%. No copyrighted music. An AI voiceover is fine.
 

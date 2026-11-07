@@ -1,4 +1,5 @@
 import "server-only";
+import type { DisputeOutcome } from "@/lib/db/schema";
 import { env } from "@/lib/env";
 import { type Cents, toCents } from "@/lib/money";
 import { paypalRequest } from "./client";
@@ -26,6 +27,7 @@ interface PayPalDisputeResource {
   status: string;
   dispute_amount?: Money;
   dispute_life_cycle_stage?: string;
+  dispute_outcome?: { outcome_code: string; outcome_reason?: string };
   seller_response_due_date?: string;
   disputed_transactions?: { seller_transaction_id?: string; buyer_transaction_id?: string; invoice_number?: string }[];
   messages?: { posted_by: string; time_posted?: string; content: string }[];
@@ -48,6 +50,7 @@ export interface PayPalDispute {
   messages: { postedBy: string; content: string; postedAt: string | null }[];
   sellerResponseDueAt: Date | null;
   actions: DisputeAction[];
+  outcome: DisputeOutcome | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -85,6 +88,7 @@ function normalize(d: PayPalDisputeResource): PayPalDispute {
     messages: conversation(d),
     sellerResponseDueAt: d.seller_response_due_date ? new Date(d.seller_response_due_date) : null,
     actions: disputeActions.filter((a) => advertises(d.links ?? [], a)),
+    outcome: d.dispute_outcome ? { code: d.dispute_outcome.outcome_code, reason: d.dispute_outcome.outcome_reason ?? null } : null,
     createdAt: new Date(d.create_time),
     updatedAt: new Date(d.update_time),
   };

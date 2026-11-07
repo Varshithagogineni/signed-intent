@@ -6,7 +6,7 @@ import { DisputeStatus } from "@/components/dispute-badges";
 import { DisputeDesk, type DisputeDeskProps } from "@/components/dispute-desk";
 import { formatCents, formatDate } from "@/components/format";
 import { SiteHeader } from "@/components/site-header";
-import { describeReason } from "@/lib/disputes/evidence";
+import { describeOutcome, describeReason, outcomeResult } from "@/lib/disputes/evidence";
 import { getDisputeCase } from "@/lib/disputes/service";
 import { env } from "@/lib/env";
 
@@ -30,7 +30,7 @@ async function DisputeCase({ params }: { params: Promise<{ id: string }> }) {
       <header>
         <div className="flex flex-wrap items-center gap-2">
           <h1 className="text-2xl font-semibold tracking-tight">{describeReason(dispute.reason)}</h1>
-          <DisputeStatus status={dispute.status} />
+          <DisputeStatus status={dispute.status} result={outcomeResult(dispute.outcome)} />
         </div>
         <p className="mt-1 text-sm text-muted">
           {dispute.id}
@@ -39,6 +39,15 @@ async function DisputeCase({ params }: { params: Promise<{ id: string }> }) {
           {dispute.sellerResponseDueAt && !resolved && ` · respond by ${formatDate(dispute.sellerResponseDueAt)}`}
         </p>
         {dispute.resolution && <p className="mt-2 text-sm font-medium text-success">✓ {dispute.resolution}</p>}
+        {dispute.outcome && (
+          <p
+            className={`mt-3 rounded-lg px-3 py-2 text-sm font-medium ${
+              outcomeResult(dispute.outcome) === "lost" ? "bg-danger/5 text-danger" : "bg-success/5 text-success"
+            }`}
+          >
+            {describeOutcome(dispute.outcome)}
+          </p>
+        )}
       </header>
 
       {buyerMessages.length > 0 && (

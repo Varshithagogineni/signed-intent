@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { authorizationProven, baselineAnalysis, checkEvidence, type EvidenceInput } from "./evidence";
+import { authorizationProven, baselineAnalysis, checkEvidence, describeOutcome, type EvidenceInput, outcomeResult } from "./evidence";
 
 const APP_URL = "https://signed-intent.example";
 
@@ -97,5 +97,15 @@ describe("baselineAnalysis", () => {
 
   it("asks the buyer for details when there is no receipt", () => {
     expect(analyze({ ...valid, purchase: null, mandate: null }).recommendation).toBe("send_message");
+  });
+});
+
+describe("describeOutcome", () => {
+  it("states PayPal's ruling and who kept the money", () => {
+    const won = { code: "RESOLVED_SELLER_FAVOUR", reason: "BUYER_BILLED_ONLY_ONCE" };
+    expect(describeOutcome(won)).toBe("PayPal ruled in your favor: buyer billed only once");
+    expect(outcomeResult(won)).toBe("won");
+    expect(outcomeResult({ code: "RESOLVED_BUYER_FAVOUR", reason: null })).toBe("lost");
+    expect(outcomeResult(null)).toBeNull();
   });
 });

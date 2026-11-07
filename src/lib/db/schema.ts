@@ -109,9 +109,16 @@ export const disputes = sqliteTable("disputes", {
   analysis: text("analysis", { mode: "json" }).$type<DisputeAnalysis>(),
   /** What the human decided, e.g. "Refunded $19.99". */
   resolution: text("resolution"),
+  /** PayPal's ruling once resolved, e.g. RESOLVED_SELLER_FAVOUR / BUYER_BILLED_ONLY_ONCE. */
+  outcome: text("outcome", { mode: "json" }).$type<DisputeOutcome>(),
   openedAt: integer("opened_at", { mode: "timestamp_ms" }).notNull(),
   updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull(),
 });
+
+export interface DisputeOutcome {
+  code: string;
+  reason: string | null;
+}
 
 export type Dispute = typeof disputes.$inferSelect;
 export type Mandate = typeof mandates.$inferSelect;

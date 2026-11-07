@@ -5,7 +5,7 @@ import { DisputeStatus } from "@/components/dispute-badges";
 import { formatCents, formatDate } from "@/components/format";
 import { SiteHeader } from "@/components/site-header";
 import { SyncDisputesButton } from "@/components/sync-disputes-button";
-import { describeReason } from "@/lib/disputes/evidence";
+import { describeOutcome, describeReason, outcomeResult } from "@/lib/disputes/evidence";
 import { listDisputes } from "@/lib/disputes/service";
 
 export const metadata = { title: "Disputes · Signed Intent" };
@@ -47,12 +47,16 @@ async function DisputeList() {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <span className="truncate font-medium">{d.purchaseTitle ?? "Payment without an agent receipt"}</span>
-                <DisputeStatus status={d.status} />
+                <DisputeStatus status={d.status} result={outcomeResult(d.outcome)} />
               </div>
               <div className="mt-0.5 truncate text-sm text-muted">
                 {describeReason(d.reason)} · {d.id} · opened {formatDate(d.openedAt)}
               </div>
-              {d.resolution && <div className="mt-1 text-xs text-success">✓ {d.resolution}</div>}
+              {(d.outcome || d.resolution) && (
+                <div className={`mt-1 text-xs ${outcomeResult(d.outcome) === "lost" ? "text-danger" : "text-success"}`}>
+                  {d.outcome ? describeOutcome(d.outcome) : `✓ ${d.resolution}`}
+                </div>
+              )}
             </div>
             {d.amountCents !== null && <div className="font-semibold tabular-nums">{formatCents(d.amountCents)}</div>}
           </Link>

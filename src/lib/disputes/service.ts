@@ -16,7 +16,7 @@ import {
 import { refundCapture } from "@/lib/paypal/payments";
 import { fingerprint, verifyDocument } from "@/lib/signing";
 import { analyzeDispute } from "./agent";
-import { checkEvidence, describeReason, type EvidenceCheck, type EvidenceInput } from "./evidence";
+import { checkEvidence, describeOutcome, describeReason, type EvidenceCheck, type EvidenceInput, outcomeResult } from "./evidence";
 
 const { disputes, purchases, mandates, activity } = schema;
 
@@ -30,6 +30,17 @@ function findPurchase(remote: PayPalDispute): Purchase | undefined {
   const byCapture = remote.captureId ? db.select().from(purchases).where(eq(purchases.captureId, remote.captureId)).get() : undefined;
   if (byCapture || !remote.invoiceId) return byCapture;
   return db.select().from(purchases).where(eq(purchases.id, remote.invoiceId)).get();
+}
+
+/** Logs PayPal's ruling once; a buyer win means PayPal returned the money to the buyer. */
+function recordOutcome(purchase: Purchase, remote: PayPalDispute) {
+  const ruling = describeOutcome(remote.outcome!);
+  if (outcomeResult(remote.outcome) === "lost" && purchase.status !== "refunded") {
+    getDb().update(purchases).set({ status: "refunded" }).where(eq(purchases.id, purchase.id)).run();
+    log(purchase.mandateId, "purchase_refunded", `${ruling} on dispute ${remote.id}; "${purchase.title}" was refunded.`, purchase.amountCents);
+  } else {
+    log(purchase.mandateId, "dispute_responded", `${ruling} on dispute ${remote.id}.`);
+  }
 }
 
 /** Mirrors one PayPal dispute locally and links it to the purchase it is about. */
@@ -47,6 +58,7 @@ function upsert(remote: PayPalDispute): Dispute {
     messages: remote.messages,
     actions: remote.actions,
     sellerResponseDueAt: remote.sellerResponseDueAt,
+    outcome: remote.outcome,
     updatedAt: remote.updatedAt,
   };
 
@@ -59,6 +71,7 @@ function upsert(remote: PayPalDispute): Dispute {
       .set({ ...values, ...(changed && { analysis: null }) })
       .where(eq(disputes.id, remote.id))
       .run();
+    if (purchase && remote.outcome && !existing.outcome) recordOutcome(purchase, remote);
   } else {
     db.insert(disputes).values({ id: remote.id, openedAt: remote.createdAt, ...values }).run();
     if (purchase) {
