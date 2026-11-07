@@ -10,6 +10,8 @@ import { listDisputes } from "@/lib/disputes/service";
 
 export const metadata = { title: "Disputes · Signed Intent" };
 
+const OUTCOME_TEXT = { won: "text-success", refunded: "text-muted", lost: "text-danger" };
+
 function EmptyState() {
   return (
     <div className="rounded-2xl border border-dashed border-border p-8 text-sm">
@@ -53,7 +55,7 @@ async function DisputeList() {
                 {describeReason(d.reason)} · {d.id} · opened {formatDate(d.openedAt)}
               </div>
               {(d.outcome || d.resolution) && (
-                <div className={`mt-1 text-xs ${outcomeResult(d.outcome) === "lost" ? "text-danger" : "text-success"}`}>
+                <div className={`mt-1 text-xs ${OUTCOME_TEXT[outcomeResult(d.outcome) ?? "won"]}`}>
                   {d.outcome ? describeOutcome(d.outcome) : `✓ ${d.resolution}`}
                 </div>
               )}

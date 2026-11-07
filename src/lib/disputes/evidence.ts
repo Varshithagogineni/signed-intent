@@ -27,15 +27,20 @@ const OUTCOME_LABELS: Record<string, string> = {
   DENIED: "PayPal denied the claim",
 };
 
+/** True when the dispute closed because the merchant chose to give the money back. */
+const merchantRefunded = (outcome: DisputeOutcome) => outcome.code === "ACCEPTED" || outcome.reason === "SELLER_ISSUED_REFUND";
+
 /** PayPal's ruling in words, e.g. "PayPal ruled in your favor: buyer billed only once". */
 export function describeOutcome(outcome: DisputeOutcome): string {
+  if (merchantRefunded(outcome)) return "Closed: you refunded the buyer";
   const label = OUTCOME_LABELS[outcome.code] ?? outcome.code.toLowerCase().replaceAll("_", " ");
   return outcome.reason ? `${label}: ${outcome.reason.toLowerCase().replaceAll("_", " ")}` : label;
 }
 
-/** Whether the seller kept the money, lost it, or neither applies (e.g. still open). */
-export function outcomeResult(outcome: DisputeOutcome | null): "won" | "lost" | null {
+/** Whether the seller kept the money, refunded it by choice, lost it, or it's still open. */
+export function outcomeResult(outcome: DisputeOutcome | null): "won" | "refunded" | "lost" | null {
   if (!outcome) return null;
+  if (merchantRefunded(outcome)) return "refunded";
   if (outcome.code === "RESOLVED_SELLER_FAVOUR" || outcome.code === "CANCELED_BY_BUYER" || outcome.code === "DENIED") return "won";
   if (outcome.code === "RESOLVED_BUYER_FAVOUR" || outcome.code === "ACCEPTED") return "lost";
   return null;

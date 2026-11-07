@@ -45,7 +45,7 @@ Legend: `[ ]` todo · `[x]` done · `[~]` in progress · ⭐ must-have for the d
 - [x] Sandbox dispute opened end to end: PP-R-CVJ-10197002 ("charged twice") synced, matched, analyzed, signed evidence accepted by PayPal (now under review)
 - [x] `scripts/open-sandbox-dispute.mts` files a dispute as the sandbox buyer (PayPal has no create-dispute API)
 - [x] PayPal ruled PP-R-CVJ-10197002 for the seller (BUYER_BILLED_ONLY_ONCE) ~3 min after our evidence; the desk now shows won/lost
-- [ ] Still untested on a live dispute: accept claim, refund (PayPal offered no send-message on chargeback-stage claims). PP-R-HKF-10197004 is open locally if wanted
+- [x] Refund (PP-R-HKF-10197004 → closed, seller issued refund) and accept claim (PP-R-CXC-10197007 → under review) tested live. Send-message is never offered on chargeback-stage claims
 
 ## Day 5 — Sun Nov 8 · Product design pass
 - [x] ⭐ Mandate card, live spend ledger, agent activity feed, receipt viewer, dispute view

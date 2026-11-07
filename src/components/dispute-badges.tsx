@@ -12,13 +12,15 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 /** The dispute's state; once PayPal rules, whether the seller won or lost. */
-export function DisputeStatus({ status, result }: { status: string; result?: "won" | "lost" | null }) {
+const RESULT_STYLES = {
+  won: "bg-success/10 text-success",
+  refunded: "bg-muted/10 text-muted",
+  lost: "bg-danger/10 text-danger",
+};
+
+export function DisputeStatus({ status, result }: { status: string; result?: keyof typeof RESULT_STYLES | null }) {
   if (result) {
-    return (
-      <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${result === "won" ? "bg-success/10 text-success" : "bg-danger/10 text-danger"}`}>
-        {result === "won" ? "won" : "lost"}
-      </span>
-    );
+    return <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${RESULT_STYLES[result]}`}>{result}</span>;
   }
   return (
     <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[status] ?? "bg-muted/10 text-muted"}`}>

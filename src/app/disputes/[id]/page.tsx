@@ -10,6 +10,8 @@ import { describeOutcome, describeReason, outcomeResult } from "@/lib/disputes/e
 import { getDisputeCase } from "@/lib/disputes/service";
 import { env } from "@/lib/env";
 
+const OUTCOME_STYLES = { won: "bg-success/5 text-success", refunded: "bg-surface-muted text-muted", lost: "bg-danger/5 text-danger" };
+
 async function DisputeCase({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   await connection();
@@ -42,7 +44,7 @@ async function DisputeCase({ params }: { params: Promise<{ id: string }> }) {
         {dispute.outcome && (
           <p
             className={`mt-3 rounded-lg px-3 py-2 text-sm font-medium ${
-              outcomeResult(dispute.outcome) === "lost" ? "bg-danger/5 text-danger" : "bg-success/5 text-success"
+              OUTCOME_STYLES[outcomeResult(dispute.outcome) ?? "won"]
             }`}
           >
             {describeOutcome(dispute.outcome)}

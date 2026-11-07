@@ -107,5 +107,8 @@ describe("describeOutcome", () => {
     expect(outcomeResult(won)).toBe("won");
     expect(outcomeResult({ code: "RESOLVED_BUYER_FAVOUR", reason: null })).toBe("lost");
     expect(outcomeResult(null)).toBeNull();
+    const refunded = { code: "RESOLVED_BUYER_FAVOUR", reason: "SELLER_ISSUED_REFUND" };
+    expect(outcomeResult(refunded)).toBe("refunded");
+    expect(describeOutcome(refunded)).toBe("Closed: you refunded the buyer");
   });
 });

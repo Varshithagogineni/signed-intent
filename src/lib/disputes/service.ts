@@ -35,7 +35,8 @@ function findPurchase(remote: PayPalDispute): Purchase | undefined {
 /** Logs PayPal's ruling once; a buyer win means PayPal returned the money to the buyer. */
 function recordOutcome(purchase: Purchase, remote: PayPalDispute) {
   const ruling = describeOutcome(remote.outcome!);
-  if (outcomeResult(remote.outcome) === "lost" && purchase.status !== "refunded") {
+  const result = outcomeResult(remote.outcome);
+  if ((result === "lost" || result === "refunded") && purchase.status !== "refunded") {
     getDb().update(purchases).set({ status: "refunded" }).where(eq(purchases.id, purchase.id)).run();
     log(purchase.mandateId, "purchase_refunded", `${ruling} on dispute ${remote.id}; "${purchase.title}" was refunded.`, purchase.amountCents);
   } else {
