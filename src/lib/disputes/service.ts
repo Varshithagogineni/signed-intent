@@ -43,11 +43,15 @@ function recordOutcome(purchase: Purchase, remote: PayPalDispute) {
   }
 }
 
-/** Mirrors one PayPal dispute locally and links it to the purchase it is about. */
-function upsert(remote: PayPalDispute): Dispute {
+/**
+ * Mirrors one PayPal dispute locally and links it to the purchase it is about. Disputes on
+ * payments the agent didn't make (other apps on the same PayPal account) are ignored.
+ */
+function upsert(remote: PayPalDispute): Dispute | null {
   const db = getDb();
   const existing = db.select().from(disputes).where(eq(disputes.id, remote.id)).get();
   const purchase = findPurchase(remote);
+  if (!existing && !purchase) return null;
   const values = {
     purchaseId: purchase?.id ?? null,
     captureId: remote.captureId ?? purchase?.captureId ?? null,
@@ -81,16 +85,18 @@ function upsert(remote: PayPalDispute): Dispute {
   return db.select().from(disputes).where(eq(disputes.id, remote.id)).get()!;
 }
 
-/** Fetches one dispute from PayPal (e.g. after a webhook) and stores it. */
-export async function syncDispute(id: string): Promise<Dispute> {
+/** Fetches one dispute from PayPal (e.g. after a webhook) and stores it if it is ours. */
+export async function syncDispute(id: string): Promise<Dispute | null> {
   return upsert(await getDispute(id));
 }
 
-/** Pulls every dispute from PayPal. Works without webhooks, e.g. on localhost. */
+/** Pulls every dispute from PayPal and returns how many are about agent purchases. */
 export async function syncAllDisputes(): Promise<number> {
-  const ids = await listDisputeIds();
-  for (const id of ids) await syncDispute(id);
-  return ids.length;
+  let matched = 0;
+  for (const id of await listDisputeIds()) {
+    if (await syncDispute(id)) matched++;
+  }
+  return matched;
 }
 
 export interface DisputeListItem extends Dispute {
@@ -194,6 +200,7 @@ export async function respond(id: string, action: ResponseAction, text: string):
   const found = await getDisputeCase(id);
   if (!found) throw new DisputeActionError(`Unknown dispute ${id}`);
   const { dispute, purchase } = found;
+  if (dispute.status === "RESOLVED") throw new DisputeActionError("This dispute is already resolved.");
 
   const requirePayPalAction = (name: string) => {
     if (!dispute.actions.includes(name)) {
@@ -240,9 +247,10 @@ export async function respond(id: string, action: ResponseAction, text: string):
   if (resolution) getDb().update(disputes).set({ resolution }).where(eq(disputes.id, id)).run();
 
   // PayPal applies some actions asynchronously; a stale mirror is fine, the next sync fixes it.
+  const stored = () => getDb().select().from(disputes).where(eq(disputes.id, id)).get()!;
   try {
-    return await syncDispute(id);
+    return (await syncDispute(id)) ?? stored();
   } catch {
-    return getDb().select().from(disputes).where(eq(disputes.id, id)).get()!;
+    return stored();
   }
 }

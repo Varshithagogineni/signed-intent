@@ -14,7 +14,7 @@ Give your AI agent a budget, not your wallet. Approve one spending limit in PayP
 
 ### Inspiration
 
-AI agents can already browse and shop, but letting one pay is all-or-nothing: hand over your payment method and hope. Nothing stops an agent from overspending, buying the wrong thing, or being steered by a prompt injection on a product page. And when something goes wrong there's no record of what you actually authorized, so a dispute is your word against a log file. PayPal has said its seller protection for AI purchases doesn't assess agent intent. We wanted to make agent spending accountable on the payment rails people already trust.
+AI agents can already browse and shop, but letting one pay is all-or-nothing: hand over your payment method and hope. Nothing stops an agent from overspending, buying the wrong thing, or being steered by a prompt injection on a product page. And when something goes wrong there's no record of what you actually authorized, so a dispute is your word against a log file. We wanted to make agent spending accountable on the payment rails people already trust.
 
 ### What it does
 
@@ -26,7 +26,7 @@ Signed Intent is a shopping agent that can only spend money you've approved in P
 4. **Blocked means blocked.** Ask it to buy a $120 blender on a $40 mandate and the policy refuses. Even if our code had a bug, PayPal itself rejects captures above the hold.
 5. **Signed receipt.** Every purchase produces an Ed25519-signed receipt binding your mandate, the item, the agent's reasoning and the PayPal capture ID. Anyone can verify it with our public key.
 6. **Revoke anytime.** One click voids the authorization and PayPal releases what's left.
-7. **Disputes answer themselves.** When a buyer disputes a purchase in PayPal, the dispute agent matches it to its signed receipt, verifies the signatures, checks every capture under the mandate, and recommends a response (submit evidence, refund, or message the buyer) with the text drafted. You approve before anything goes to PayPal.
+7. **Disputes answer themselves.** When a buyer disputes a purchase in PayPal, the dispute agent matches it to its signed receipt, verifies the signatures, checks every capture under the mandate, and recommends a response (submit evidence, refund, accept the claim, or message the buyer) with the text drafted. You approve before anything goes to PayPal.
 
 ### How we built it
 
@@ -61,6 +61,7 @@ PayPal primitives that have existed for years (authorizations, partial captures,
 
 ### What's next
 
+- Check out at the retailer itself. In this prototype Signed Intent is the merchant of record: each capture pays our sandbox business account and no retailer order is placed.
 - Attach the signed receipt as a PDF document on the dispute, and track delivery so "item not received" claims can be answered too.
 - Standing mandates ("groceries every Friday, max $60") on vaulted PayPal accounts, which we've already verified work in the sandbox.
 - An MCP server so any agent (Claude, ChatGPT) can spend under a Signed Intent mandate.

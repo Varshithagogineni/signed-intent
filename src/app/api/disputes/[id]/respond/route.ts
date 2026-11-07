@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { DisputeActionError, respond, responseActions } from "@/lib/disputes/service";
 import { PayPalError } from "@/lib/paypal/client";
+import { rateLimit } from "@/lib/rate-limit";
 
 const bodySchema = z.object({
   action: z.enum(responseActions),
@@ -10,6 +11,8 @@ const bodySchema = z.object({
 
 /** Sends the response a human approved on the dispute desk to PayPal. */
 export async function POST(req: NextRequest, ctx: RouteContext<"/api/disputes/[id]/respond">) {
+  const limited = rateLimit(req, "actions");
+  if (limited) return limited;
   const { id } = await ctx.params;
   const parsed = bodySchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return Response.json({ error: "Choose an action to take." }, { status: 400 });

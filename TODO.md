@@ -56,7 +56,7 @@ Legend: `[ ]` todo · `[x]` done · `[~]` in progress · ⭐ must-have for the d
 ## Day 6 — Mon Nov 9 · Feature freeze + hardening
 - [ ] Seed demo merchant catalog
 - [x] Rate-limit AI routes (per IP + daily global cap); token refresh verified
-- [x] Unit tests for policy engine, receipt signing, dispute evidence and rate limits (27 tests)
+- [x] Unit tests for policy engine, receipt signing, dispute evidence and rate limits (28 tests)
 - [ ] Three clean rehearsals on the hosted URL
 
 ## Day 7 — Tue Nov 10 · Story

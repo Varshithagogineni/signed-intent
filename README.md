@@ -2,7 +2,7 @@
 
 **Give your AI agent a budget, not your wallet.**
 
-Signed Intent lets a person approve one spending limit in PayPal and hand it to an AI shopping agent. The agent finds real products and pays for them, but only inside the limit. PayPal holds the money, a deterministic policy layer decides every payment, and each purchase produces a cryptographically signed receipt that records what the human asked for and why the agent bought what it did.
+Signed Intent lets a person approve one spending limit in PayPal and hand it to an AI shopping agent. The agent finds real products and buys them, but only inside the limit. PayPal holds the money, a deterministic policy layer decides every payment, and each purchase produces a cryptographically signed receipt that records what the human asked for and why the agent bought what it did.
 
 Built for the [PayPal AI Hackathon](https://paypalaihackathon.devpost.com/) (Build What's Next with PayPal and AI).
 
@@ -10,7 +10,7 @@ Built for the [PayPal AI Hackathon](https://paypalaihackathon.devpost.com/) (Bui
 
 ## The problem
 
-AI agents can now shop, but handing one your payment details is an all-or-nothing bet. Nothing stops an agent from overspending, buying the wrong thing, or being manipulated by a prompt injection on a product page. When a purchase goes wrong, there is no record of what the human actually authorized, so disputes become one person's word against a log file. PayPal's own seller protection for AI-initiated purchases does not assess agent intent.
+AI agents can now shop, but handing one your payment details is an all-or-nothing bet. Nothing stops an agent from overspending, buying the wrong thing, or being manipulated by a prompt injection on a product page. When a purchase goes wrong, there is no record of what the human actually authorized, so disputes become one person's word against a log file.
 
 ## How Signed Intent solves it
 
@@ -154,7 +154,7 @@ scripts/                 sandbox smoke test, signing key, webhook registration
 
 ## Status
 
-Hackathon project, sandbox only. See [`TODO.md`](TODO.md) for the build plan.
+Hackathon project, sandbox only. In this prototype Signed Intent acts as the merchant of record: each capture pays the app's sandbox business account, and no order is placed with the retailer. Checking out at the retailer itself is the next step. See [`TODO.md`](TODO.md) for the build plan.
 
 ## License
 

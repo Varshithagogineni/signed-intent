@@ -1,7 +1,10 @@
 import { syncAllDisputes } from "@/lib/disputes/service";
+import { rateLimit } from "@/lib/rate-limit";
 
 /** Pulls disputes from PayPal on demand, for environments without a public webhook URL. */
-export async function POST() {
+export async function POST(req: Request) {
+  const limited = rateLimit(req, "actions");
+  if (limited) return limited;
   try {
     return Response.json({ synced: await syncAllDisputes() });
   } catch (error) {

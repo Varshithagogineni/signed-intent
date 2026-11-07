@@ -11,6 +11,8 @@ export interface Limit {
 export const LIMITS = {
   chat: { max: 30, windowMs: 10 * 60_000 },
   analyze: { max: 10, windowMs: 10 * 60_000 },
+  /** Actions that move sandbox money or call PayPal: dispute responses, sync, revoke. */
+  actions: { max: 20, windowMs: 10 * 60_000 },
   /** Across all callers, so many visitors together can't exhaust the daily model quota. */
   global: { max: 500, windowMs: 24 * 60 * 60_000 },
 } satisfies Record<string, Limit>;
