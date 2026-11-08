@@ -15,7 +15,8 @@ AI agents can now shop, but handing one your payment details is an all-or-nothin
 ## How Signed Intent solves it
 
 1. **Mandate.** You tell the agent what you want and your limit ("a water filter pitcher, up to $40, this week"). The agent proposes a mandate and you approve it once in PayPal. That approval creates a PayPal **authorization**: a real hold for exactly that amount.
-2. **Shop.** The agent searches 100M+ real products through **Channel3**, compares price, rating and fit, and picks one.
+2. **Shop, then ask.** The agent searches 100M+ real products through **Channel3**, checks the live listings of the best ones (price, stock, rating), and shows you a shortlist with its top pick. It buys only after you confirm, and it answers questions along the way ("which of these handles hard water?").
+   Every answer shows an **agent computer** window: each search, listing check, policy decision, PayPal capture and receipt signature as a step, with the real endpoint or listing behind it.
 3. **Policy, then pay.** The agent asks to buy. The server looks up the authoritative price itself (the model cannot misstate it), runs the mandate policy (remaining budget, per-item cap, retailer allowlist, purchase count, expiry), reserves the amount atomically, and only then **partially captures** the PayPal authorization.
 4. **Blocked means blocked.** Over-budget attempts are refused by the policy layer, and PayPal independently rejects any capture above the hold (`MAX_CAPTURE_AMOUNT_EXCEEDED`). Every attempt, allowed or not, lands in an append-only activity trail.
 5. **Signed receipt.** Each purchase emits an Ed25519-signed intent receipt (JWS) that binds the human's mandate, the item, the agent's reasoning and the PayPal capture ID. Anyone can verify it against the public key at `/.well-known/jwks.json`.

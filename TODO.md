@@ -70,13 +70,20 @@ Legend: `[ ]` todo · `[x]` done · `[~]` in progress · ⭐ must-have for the d
 ## Day 9 — Thu Nov 12 · Buffer only
 - [ ] Confirm submission before 12:00 PM PT
 
+## Nov 7 — conversational agent, redesign and video
+- [x] Agent checks live listings, shows a shortlist with a top pick and asks before buying; answers questions
+- [x] "Agent computer" step view with the real endpoint or listing per step
+- [x] Redesign (console, ledger, cards, receipt, disputes) from an independent design spec
+- [x] Demo video v3 (2:13, 1080p, zoom-ins, continuous ElevenLabs narration): `../video/signed-intent-demo-v3.mp4`
+- [ ] Re-record against the hosted URL after the Render deploy (evidence text currently shows localhost)
+
 ## Owner checklist (in order)
 - [ ] Gemini: turn on pay-as-you-go billing in AI Studio (free tier is 5 req/min; one agent turn uses 4–8)
 - [ ] Render: New → Blueprint → this repo; fill secrets; set `APP_URL`; redeploy; open `/api/health`
 - [ ] On the hosted site: run the water-filter flow once, then `node --env-file=.env.local scripts/open-sandbox-dispute.mts <pur_… from the receipt>` and press *Check PayPal for disputes* a few minutes later, so judges see a populated Disputes tab
 - [ ] Optional: register the webhook against the Render URL and set `PAYPAL_WEBHOOK_ID`
 - [ ] Make the GitHub repo public
-- [ ] Record the video (script in `docs/submission.md`), upload to YouTube as public
+- [ ] Final video: re-record on the hosted site (≈10 min, tooling ready), upload to YouTube as public
 - [ ] Fill Devpost (text in `docs/submission.md`), select sponsor tools, submit
 
 ## After judging — Tue Dec 22, 2026

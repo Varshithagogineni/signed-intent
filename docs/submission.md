@@ -21,7 +21,7 @@ AI agents can already browse and shop, but letting one pay is all-or-nothing: ha
 Signed Intent is a shopping agent that can only spend money you've approved in PayPal.
 
 1. **Mandate.** Tell the agent what you want and your limit, e.g. "a water filter pitcher, up to $40, this week." It proposes a mandate; you approve it once in PayPal, which places a real authorization hold for exactly that amount.
-2. **Shop.** The agent searches 100M+ real products (via Channel3), compares price, rating and fit, and chooses.
+2. **Shop, then ask.** The agent searches 100M+ real products (via Channel3), checks the live listings of the best ones, and shows a shortlist with its top pick. It buys only when you say so, and it answers questions like a real assistant. An "agent computer" window shows every step it takes: each search, listing check, policy decision, PayPal call and receipt signature, with the real endpoint behind it.
 3. **Policy, then pay.** Before any money moves, the server looks up the real price itself, checks the mandate's rules (remaining budget, per-item cap, approved retailers, purchase count, expiry), and only then partially captures the PayPal authorization.
 4. **Blocked means blocked.** Ask it to buy a $120 blender on a $40 mandate and the policy refuses. Even if our code had a bug, PayPal itself rejects captures above the hold.
 5. **Signed receipt.** Every purchase produces an Ed25519-signed receipt binding your mandate, the item, the agent's reasoning and the PayPal capture ID. Anyone can verify it with our public key.
@@ -78,34 +78,33 @@ nextjs, typescript, react, tailwindcss, paypal, paypal-orders-api, paypal-disput
 - **PayPal REST APIs (sandbox):** Orders v2 (AUTHORIZE), Payments v2 (capture, void, refund), Disputes v1, Webhooks.
 - **Render:** hosting (Blueprint with a persistent disk).
 - **Claude Code:** AI pair programmer used throughout development.
+- **ElevenLabs:** text-to-speech narration for the demo video (voice "Sarah"); the demo itself is a real, unedited run of the app against the PayPal sandbox, with waits sped up.
 
 ## Testing instructions for judges
 
 - Hosted demo: `<RENDER URL>`
 - Sandbox buyer login for the PayPal approval popup: `<JUDGE BUYER EMAIL>` / `<PASSWORD>` (a dedicated sandbox Personal account)
-- Flow: click the water-filter example → Approve with PayPal → watch the purchase → ask "Now try to buy a $120 blender anyway" → open the signed receipt.
+- Flow: click the water-filter example → Approve with PayPal → watch the agent computer search and check listings → click **Buy this** on the top pick → ask "Now try to buy a $120 blender anyway" → open the signed receipt. You can also ask it questions at any point.
 - Disputes: open the **Disputes** tab; a pre-made sandbox dispute is there with its evidence checks and the agent's recommendation. "How it works" explains the design in one screen.
 
 ---
 
-# Demo video script (target 2:30, hard limit < 3:00)
+# Demo video (final cut, 2:13)
 
-Revoke is left out to keep time; mention it on the closing card if there is room. Create the dispute before recording with `scripts/open-sandbox-dispute.mts` (it takes a few minutes to appear in the API), never on camera. After approving the evidence, a won dispute (PayPal's ruling shown in green) makes a strong last frame for the scene.
+Recorded automatically against the real app and the PayPal sandbox at 1920×1080 (Playwright), with CSS zoom-ins on what the narration describes, waits sped up and labelled, and one continuous ElevenLabs narration (voice "Sarah"); scenes are cut to the narration's word timings. Tooling lives outside the repo in `video/tooling` (`tts_full.mjs`, `record.cjs`, `assemble.py`). Open a fresh sandbox dispute with `scripts/open-sandbox-dispute.mts` a few minutes before recording.
 
-Record at 1440×900 or larger, browser zoom 110%. No copyrighted music. An AI voiceover is fine.
-
-| Time | Screen | Voiceover |
+| # | Screen | Narration |
 |---|---|---|
-| 0:00–0:15 | Title card, then the empty console | "AI agents can shop for us now. But letting one pay means handing over your wallet and hoping. Signed Intent gives your agent a budget instead." |
-| 0:15–0:35 | Click the water-filter example; mandate card appears | "I ask for a water filter pitcher, up to forty dollars, this week. The agent doesn't get my card. It proposes a mandate: forty dollars, expiring in a week." |
-| 0:35–0:55 | PayPal popup, log in, Continue; ledger turns active | "I approve it once in PayPal. That places a real forty-dollar authorization hold. That hold is the agent's entire budget." |
-| 0:55–1:25 | Product grid, then "Paid $19.99 via PayPal"; ledger drops to $20.01 | "The agent searches real products across retailers, compares price and ratings, and buys one. Our server checks the mandate and captures part of the PayPal hold. Twenty dollars left." |
-| 1:25–1:50 | Type "Now try to buy a $120 blender anyway"; red blocked card | "Now I tell it to buy a hundred-and-twenty-dollar blender. Blocked. The policy decides, not the model. And even if our code failed, PayPal rejects any capture above the hold." |
-| 1:50–2:10 | Tick decline toggle, ask for another item; amber declined card | "Payments fail in real life too. Here PayPal declines, and the agent reports it instead of pretending it worked." |
-| 2:10–2:25 | Receipt page, signature valid, expand JWS | "Every purchase gets a signed receipt: what I asked for, what the agent bought, why, and the PayPal capture ID. Anyone can verify it with our public key." |
-| 2:25–2:50 | Disputes tab → open the pre-made dispute; checks all green; recommendation card | "And when a buyer disputes a purchase, the receipt becomes evidence. The dispute agent matches the dispute to its receipt, verifies every signature, and drafts a response. I approve it, and it goes to PayPal." |
-| 2:50–2:58 | Closing card | "Signed Intent: give your agent a budget, not your wallet." |
-
-## Rough early-check cut (60–90 s)
-
-Use rows 0:15–1:50 plus the receipt shot. The polished version replaces it before Nov 12.
+| 1 | Title card | "Signed Intent. Give your A I agent a budget, not your wallet." |
+| 2 | Empty console, prompt cards | "A I agents can shop for us now. But letting one pay usually means handing over your card and hoping. Signed Intent gives your agent a budget instead." |
+| 3 | Click the water-filter card; mandate card (zoom) | "I ask for a water filter pitcher, up to forty dollars, this week. The agent never gets my card. It proposes a mandate: forty dollars, expiring in a week." |
+| 4 | PayPal approval popup; ledger turns active (zoom) | "I approve it once, in PayPal. That places a real forty dollar authorization hold, and that hold is the agent's entire budget." |
+| 5 | Agent computer: search, two listing checks, compare; shortlist with Top pick and its question (zoom) | "Now the agent goes to work, and its computer shows every step. It searches real products across retailers through Channel Three, checks the live listings, and compares price, rating and fit. Then, instead of buying blindly, it asks me." |
+| 6 | Click Buy this: policy, PayPal capture, receipt steps; ledger drops to $20.01 (zoom) | "I like the top pick, so I tap buy. Before any money moves, the policy engine checks the mandate. PayPal captures part of the hold, and a signed receipt is created. The budget on the right updates live." |
+| 7 | Ask "Which of these works best for hard water?"; answer (zoom) | "It's a real conversation, too. I can ask which pitcher handles hard water, and it answers from the products it just checked." |
+| 8 | Ask for a $120 blender; red blocked step and card (zoom) | "Now I tell it to buy a hundred and twenty dollar blender anyway. Blocked. The policy decides, not the model. And even if our code had a bug, PayPal would reject any capture above the hold." |
+| 9 | Tick the decline toggle, ask for a filter cartridge; amber declined card (zoom) | "Payments fail in real life too. Here PayPal declines, and the agent reports it honestly. Nothing is charged, and the budget stays intact." |
+| 10 | Signed receipt: valid signature banner, rows, public key (zoom) | "Every purchase gets a signed receipt: what I asked for, what the agent bought, why, and the PayPal capture I D. Anyone can verify it with our public key." |
+| 11 | Disputes → fresh dispute: seven green checks, agent recommendation, Approve (zoom) | "Now the part no shopping agent handles. The buyer disputes a charge in PayPal. The dispute agent matches it to its signed receipt and runs seven checks. All green. It drafts the evidence, I approve, and it goes to PayPal through the Disputes A P I." |
+| 12 | Earlier dispute with the green "won" ruling (zoom) | "This is an earlier dispute, minutes after its evidence went in. PayPal ruled in our favor: buyer billed only once." |
+| 13 | Closing card | "Signed Intent. Give your agent a budget, not your wallet. Built on PayPal, Gemini and Channel Three." |
