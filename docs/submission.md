@@ -16,6 +16,8 @@ Give your AI agent a budget, not your wallet. Approve one spending limit in PayP
 
 AI agents can already browse and shop, but letting one pay is all-or-nothing: hand over your payment method and hope. Nothing stops an agent from overspending, buying the wrong thing, or being steered by a prompt injection on a product page. And when something goes wrong there's no record of what you actually authorized, so a dispute is your word against a log file. We wanted to make agent spending accountable on the payment rails people already trust.
 
+**Who it's for:** people who want an AI agent to shop for them without handing over their wallet, and the agent platforms and merchants who need proof of what the buyer approved when a payment is disputed.
+
 ### What it does
 
 Signed Intent is a shopping agent that can only spend money you've approved in PayPal.
@@ -96,7 +98,7 @@ Recorded automatically against the real app and the PayPal sandbox at 1920×1080
 | # | Screen | Narration |
 |---|---|---|
 | 1 | Title card | "Signed Intent. Give your A I agent a budget, not your wallet." |
-| 2 | Empty console, prompt cards | "A I agents can shop for us now. But letting one pay usually means handing over your card and hoping. Signed Intent gives your agent a budget instead." |
+| 2 | Empty console, prompt cards | "A I agents can shop for us now, but letting one pay usually means handing over your card and hoping. Signed Intent is for anyone who wants an agent to shop for them. It gives the agent a budget instead of your wallet." |
 | 3 | Click the water-filter card; mandate card (zoom) | "I ask for a water filter pitcher, up to forty dollars, this week. The agent never gets my card. It proposes a mandate: forty dollars, expiring in a week." |
 | 4 | PayPal approval popup; ledger turns active (zoom) | "I approve it once, in PayPal. That places a real forty dollar authorization hold, and that hold is the agent's entire budget." |
 | 5 | Agent computer: search, two listing checks, compare; shortlist with Top pick and its question (zoom) | "Now the agent goes to work, and its computer shows every step. It searches real products across retailers through Channel Three, checks the live listings, and compares price, rating and fit. Then, instead of buying blindly, it asks me." |
