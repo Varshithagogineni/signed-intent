@@ -83,7 +83,8 @@ Legend: `[ ]` todo · `[x]` done · `[~]` in progress · ⭐ must-have for the d
 - [ ] On the hosted site: run the water-filter flow once, then `node --env-file=.env.local scripts/open-sandbox-dispute.mts <pur_… from the receipt>` and press *Check PayPal for disputes* a few minutes later, so judges see a populated Disputes tab
 - [ ] Optional: register the webhook against the Render URL and set `PAYPAL_WEBHOOK_ID`
 - [ ] Make the GitHub repo public
-- [ ] Final video: re-record on the hosted site (≈10 min, tooling ready), upload to YouTube as public
+- [x] Demo video v5 public on YouTube: https://youtu.be/1s4wg5ph96c
+- [ ] Optional: re-record on the hosted site so the evidence text shows the live URL instead of localhost
 - [ ] Fill Devpost (text in `docs/submission.md`), select sponsor tools, submit
 
 ## After judging — Tue Dec 22, 2026

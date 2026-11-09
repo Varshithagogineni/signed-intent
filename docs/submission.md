@@ -82,6 +82,10 @@ nextjs, typescript, react, tailwindcss, paypal, paypal-orders-api, paypal-disput
 - **Claude Code:** AI pair programmer used throughout development.
 - **ElevenLabs (eleven_v3):** text-to-speech narration for the demo video; the demo itself is a real, unedited run of the app against the PayPal sandbox, with waits sped up.
 
+## Demo video
+
+https://youtu.be/1s4wg5ph96c
+
 ## Testing instructions for judges
 
 - Hosted demo: `<RENDER URL>`
