@@ -34,7 +34,7 @@ Signed Intent is a shopping agent that can only spend money you've approved in P
 
 - **PayPal Orders v2 + Payments v2 (sandbox):** `intent: AUTHORIZE` orders for mandates, buyer approval in a popup, authorization, multiple partial captures with `final_capture: false`, voids for revocation, refunds, `PayPal-Request-Id` idempotency on every money-moving call, and `PayPal-Mock-Response` to demo declines. We verified every primitive in the sandbox before building (see `docs/sandbox-findings.md`).
 - **PayPal Disputes API + webhooks:** disputes are pulled on demand or pushed by a `CUSTOMER.DISPUTE.*` webhook (signature verified with PayPal), matched to receipts by capture ID, and answered with `send-message`, `provide-evidence` (multipart) or a refund. Sandbox `escalate` / `require-evidence` let us demo the full evidence path.
-- **Google Gemini via the Vercel AI SDK 7:** a tool-calling agent (`requestMandate`, `searchProducts`, `purchase`, `checkMandate`) with automatic fallback to lighter models when rate-limited.
+- **Google Gemini via the Vercel AI SDK 7:** a conversational, tool-calling agent (`requestMandate`, `searchProducts`, `inspectProduct`, `recommendProducts`, `purchase`, `checkMandate`) that shortlists, asks before buying, and falls back to lighter models when rate-limited. Every tool call is rendered as a step in the "agent computer".
 - **Channel3:** real product search and authoritative price lookup, so the model can never misstate what it pays.
 - **Dispute agent:** deterministic evidence checks (signatures, mandate binding, approval before purchase, total captures within the terms) feed a Gemini structured-output call that recommends and drafts the response, with a rule-based fallback.
 - **Policy engine:** a pure, unit-tested function. The model never votes on whether money moves. Budget is reserved atomically in SQLite so concurrent purchases can't overspend.
@@ -78,7 +78,7 @@ nextjs, typescript, react, tailwindcss, paypal, paypal-orders-api, paypal-disput
 - **Vercel AI SDK 7:** agent loop, streaming, tool calling and the chat UI hook.
 - **Channel3 API:** product search (`/v1/search`) and price lookup (`/v1/products/{id}`).
 - **PayPal REST APIs (sandbox):** Orders v2 (AUTHORIZE), Payments v2 (capture, void, refund), Disputes v1, Webhooks.
-- **Render:** hosting (Blueprint with a persistent disk).
+- **Render:** deployment Blueprint (`render.yaml`, Node web service with a persistent disk).
 - **Claude Code:** AI pair programmer used throughout development.
 - **ElevenLabs (eleven_v3):** text-to-speech narration for the demo video; the demo itself is a real, unedited run of the app against the PayPal sandbox, with waits sped up.
 
