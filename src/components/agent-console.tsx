@@ -218,7 +218,8 @@ export function AgentConsole() {
 
   return (
     <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_420px]">
-      <section className="flex min-h-0 flex-col">
+      {/* data-agent-busy lets tests and the demo recorder wait for the agent to finish its turn. */}
+      <section className="flex min-h-0 flex-col" data-agent-busy={busy}>
         <div className="flex-1 overflow-y-auto px-4 py-8 sm:px-8">
           <div className="mx-auto flex max-w-3xl flex-col gap-6">
             {messages.length === 0 && (
