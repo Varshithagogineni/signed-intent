@@ -201,7 +201,10 @@ export function AgentConsole() {
       if (part.type === "tool-requestMandate") blocks.push(<MandateRequestCard key={key} part={part} onApprove={openApproval} />);
       if (part.type === "tool-recommendProducts") {
         blocks.push(<RecommendationCards key={key} part={part} disabled={busy} onChoose={(choice) => send(`Buy the ${choice}.`)} />);
-        if (part.state === "output-available" && part.output.question) blocks.push(<AgentBubble key={`${key}-q`} text={part.output.question} />);
+        // Show the shortlist's question unless the agent goes on to ask in its own words.
+        const asksAfter = message.parts.slice(i + 1).some((p) => p.type === "text" && p.text.trim());
+        if (part.state === "output-available" && part.output.question && !asksAfter)
+          blocks.push(<AgentBubble key={`${key}-q`} text={part.output.question} />);
       }
       if (part.type === "tool-purchase") blocks.push(<PurchaseResult key={key} part={part} />);
     });
