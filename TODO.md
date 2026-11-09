@@ -25,7 +25,7 @@ Legend: `[ ]` todo · `[x]` done · `[~]` in progress · ⭐ must-have for the d
 - [ ] Make GitHub repo public (needs owner)
 - [x] Production build passes; lazy DB connection; `/api/health`
 - [x] `render.yaml` blueprint + signing key script
-- [ ] Deploy to Render (needs owner's Render account)
+- [x] Deployed to Render: https://signed-intent.onrender.com (e2e passes against it)
 - [x] Devpost text + video script (`docs/submission.md`)
 - [ ] Rough 60–90s video recorded and uploaded (owner)
 - [ ] Devpost draft submitted for early check (owner)
@@ -79,10 +79,10 @@ Legend: `[ ]` todo · `[x]` done · `[~]` in progress · ⭐ must-have for the d
 
 ## Owner checklist (in order)
 - [ ] Gemini: turn on pay-as-you-go billing in AI Studio (free tier is 5 req/min; one agent turn uses 4–8)
-- [ ] Render: New → Blueprint → this repo; fill secrets; set `APP_URL`; redeploy; open `/api/health`
-- [ ] On the hosted site: run the water-filter flow once, then `node --env-file=.env.local scripts/open-sandbox-dispute.mts <pur_… from the receipt>` and press *Check PayPal for disputes* a few minutes later, so judges see a populated Disputes tab
+- [x] Render: New → Blueprint → this repo; fill secrets; set `APP_URL`; redeploy; open `/api/health`
+- [x] On the hosted site: run the water-filter flow once, then `node --env-file=.env.local scripts/open-sandbox-dispute.mts <pur_… from the receipt>` and press *Check PayPal for disputes* a few minutes later, so judges see a populated Disputes tab
 - [ ] Optional: register the webhook against the Render URL and set `PAYPAL_WEBHOOK_ID`
-- [ ] Make the GitHub repo public
+- [x] Make the GitHub repo public
 - [x] Demo video v5 public on YouTube: https://youtu.be/1s4wg5ph96c
 - [ ] Optional: re-record on the hosted site so the evidence text shows the live URL instead of localhost
 - [ ] Fill Devpost (text in `docs/submission.md`), select sponsor tools, submit

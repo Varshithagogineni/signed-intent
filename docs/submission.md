@@ -78,7 +78,7 @@ nextjs, typescript, react, tailwindcss, paypal, paypal-orders-api, paypal-disput
 - **Vercel AI SDK 7:** agent loop, streaming, tool calling and the chat UI hook.
 - **Channel3 API:** product search (`/v1/search`) and price lookup (`/v1/products/{id}`).
 - **PayPal REST APIs (sandbox):** Orders v2 (AUTHORIZE), Payments v2 (capture, void, refund), Disputes v1, Webhooks.
-- **Render:** deployment Blueprint (`render.yaml`, Node web service with a persistent disk).
+- **Render:** hosts the live demo at https://signed-intent.onrender.com from a Blueprint (`render.yaml`: Node web service with a persistent disk for SQLite), auto-deploying from GitHub.
 - **Claude Code:** AI pair programmer used throughout development.
 - **ElevenLabs (eleven_v3):** text-to-speech narration for the demo video; the demo itself is a real, unedited run of the app against the PayPal sandbox, with waits sped up.
 
@@ -88,7 +88,7 @@ https://youtu.be/1s4wg5ph96c
 
 ## Testing instructions for judges
 
-- Hosted demo: `<RENDER URL>`
+- Hosted demo: https://signed-intent.onrender.com
 - Sandbox buyer login for the PayPal approval popup: `<JUDGE BUYER EMAIL>` / `<PASSWORD>` (a dedicated sandbox Personal account)
 - Flow: click the water-filter example → Approve with PayPal → watch the agent computer search and check listings → click **Buy this** on the top pick → ask "Now try to buy a $120 blender anyway" → open the signed receipt. You can also ask it questions at any point.
 - Disputes: open the **Disputes** tab; a pre-made sandbox dispute is there with its evidence checks and the agent's recommendation. "How it works" explains the design in one screen.

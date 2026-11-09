@@ -6,6 +6,7 @@ Signed Intent lets a person approve one spending limit in PayPal and hand it to 
 
 Built for the [PayPal AI Hackathon](https://paypalaihackathon.devpost.com/) (Build What's Next with PayPal and AI).
 
+**▶ Live demo:** [https://signed-intent.onrender.com](https://signed-intent.onrender.com) (PayPal sandbox)  
 **▶ Demo video (2:51):** [https://youtu.be/1s4wg5ph96c](https://youtu.be/1s4wg5ph96c)
 
 ---
